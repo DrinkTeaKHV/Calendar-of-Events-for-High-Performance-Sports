@@ -1,0 +1,123 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main # Запуск на пуш в ветку main
+  pull_request:
+    branches:
+      - main # Запуск на создание PR в main
+
+jobs:
+  test-build:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:latest
+        ports:
+          - 6379:6379
+
+    env:
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+      REDIS_HOST: localhost
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.12
+
+      - name: Cache Python dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r core/requirements.txt
+
+      - name: Apply database migrations
+        run: python core/manage.py migrate
+
+      - name: Run unit tests
+        run: python core/manage.py test
+
+      - name: Lint the code
+        run: |
+          pip install flake8
+          flake8 --config=core/.flake8 core/
+
+  build-and-deploy:
+    needs: test-build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+#      - name: Set up Docker
+#        uses: docker/setup-buildx-action@v2
+#
+#      - name: Log in to DockerHub
+#        uses: docker/login-action@v2
+#        with:
+#          username: ${{ secrets.DOCKER_USERNAME }}
+#          password: ${{ secrets.DOCKER_PASSWORD }}
+#
+#      - name: Build and push Docker image
+#        run: |
+#          docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ github.repository }}:latest .
+#          docker push ${{ secrets.DOCKER_USERNAME }}/${{ github.repository }}:latest
+
+      - name: Deploy to production server
+        uses: appleboy/ssh-action@v0.1.8
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          script: |
+            # Настраиваем known_hosts
+            mkdir -p ~/.ssh
+            ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+
+            # Переходим в директорию для хранения репозитория
+            mkdir -p ~/prod
+            cd ~/prod
+
+            # Проверяем, существует ли папка .git
+            if [ ! -d ".git" ]; then
+              echo "Репозиторий не найден. Клонируем..."
+              git clone git@github.com:${{ github.repository }} . || { echo "Ошибка клонирования!"; exit 1; }
+            else
+              echo "Репозиторий найден. Обновляем..."
+              git fetch --all
+              git reset --hard origin/main || { echo "Ошибка обновления!"; exit 1; }
+            fi
+
+            # Перезапускаем контейнеры
+            docker compose -f deploy/docker-compose.yml down || true
+            docker compose -f deploy/docker-compose.yml up -d --build || { echo "Ошибка запуска контейнеров!"; exit 1; }

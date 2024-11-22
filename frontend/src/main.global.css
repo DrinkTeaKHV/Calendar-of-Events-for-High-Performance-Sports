@@ -1,0 +1,67 @@
+@font-face {
+  font-family: "#НАЗВАНИЕ_ШРИФТА_ЧЕРЕЗ_ПРОБЕЛ_(например, Segoe UI)#";
+  src: local("#НАЗВАНИЕ_ШРИФТА_ЧЕРЕЗ_ТИРЕ_(например, SegoeUI-Regular)#"), url("#ПУТЬ_ДО_ФАЙЛА_С_РАСШИРЕНИЕМ_WOFF2#") format("woff2"), url("#ПУТЬ_ДО_ФАЙЛА_С_РАСШИРЕНИЕМ__WOFF#") format("woff");
+  font-weight: 400;   /* Задать определенное значение font-weight для данного шрифта */
+  font-style: normal; /* Оставить неизменным */
+  font-display: swap; /* Оставить неизменным */
+}
+
+:root {
+  /*
+     Все названия и значения переменных определяет UI/UX дизайнер.
+     Ниже представлены примеры:
+  */
+
+  /* UI Colors (hex код, заглавные буквы) */
+  --ui-color-primary:          #3498DB;
+  --ui-color-secondary:        #2ECC71;
+  --ui-color-accent:           #E74C3C;
+  --ui-color-background:       #FFFFFF;
+  --ui-color-text:             #333333;
+
+  /* States (hex код, заглавные буквы) */
+  --ui-state-error-color:      #E74C3C;
+  --ui-state-success-color:    #2ECC71;
+  --ui-state-button-hover-bg:  #2980B9;
+  --ui-state-button-active-bg: #1C6690;
+
+  /* UI Z-Index */
+  --ui-z-index-dropdown:       1000;
+  --ui-z-index-sticky:         1020;
+  --ui-z-index-fixed:          1030;
+  --ui-z-index-modal-backdrop: 1040;
+  --ui-z-index-modal:          1050;
+  --ui-z-index-popover:        1060;
+  --ui-z-index-tooltip:        1070;
+}
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+a {
+  text-decoration: none;
+}
+
+input {
+  padding: 0;
+  margin: 0;
+  background: transparent;
+}
+
+button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}

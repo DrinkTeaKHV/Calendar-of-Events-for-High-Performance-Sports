@@ -1,0 +1,5 @@
+.idea
+.env
+backend/.idea
+nginx/certs
+backend/.venv
