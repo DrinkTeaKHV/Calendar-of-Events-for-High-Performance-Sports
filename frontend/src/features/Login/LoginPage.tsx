@@ -1,44 +1,42 @@
-import React, {useState, ChangeEvent, FormEvent, useEffect} from 'react';
+import React, {useState, ChangeEvent, FormEvent} from 'react';
+import {setCredentials, setLoading, setError} from '../../store/slices/authSlice';
 import {TAuthCredentials} from '../../definitions/types/TAuthCredentials';
 import {useLoginMutation} from '../../store/slices/apiSlice';
+import {useAppDispatch} from '../../hooks/useAppDispatch';
 import {useNavigate} from 'react-router-dom';
 import styles from './styles.module.css';
 
 const LoginPage: React.FC = () => {
-  const [credentials, setCredentials] = useState<TAuthCredentials>({ email: '', password: '' });
+  const [credentials, setCredentialsState] = useState<TAuthCredentials>({ email: '', password: '' });
   const [login, { data, isLoading, isSuccess, isError, error }] = useLoginMutation();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setCredentials((prev) => ({
+    setCredentialsState((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
-  // Handle form submission
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
+    dispatch(setLoading());
     try {
-      await login(credentials).unwrap();
-    } catch (err) {
+      const response = await login(credentials).unwrap();
+
+      dispatch(setCredentials(response));
+
+      navigate('/dashboard');
+    } catch (err: any) {
+      const errorMessage = err?.data?.message || 'An error occurred during login.';
+
+      dispatch(setError(errorMessage));
+
       console.error('Failed to login:', err);
     }
   };
-
-  useEffect(() => {
-    if (isSuccess && data) {
-      const { token } = data;
-
-      if (token) {
-        localStorage.setItem('token', token);
-
-        navigate('/dashboard');
-      }
-    }
-  }, [isSuccess, data, navigate]);
 
   return (
     <form className={styles.container} onSubmit={handleSubmit}>
