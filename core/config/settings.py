@@ -28,7 +28,8 @@ INSTALLED_APPS = [
     'drf_yasg',
     'corsheaders',
 
-    'apps.users'
+    'apps.users',
+    'apps.events'
 
 ]
 
@@ -121,3 +122,10 @@ TIME_ZONE = 'Asia/Vladivostok'  # Устанавливаем временную 
 
 # Убедитесь, что USE_TZ включен
 USE_TZ = True  # Включаем поддержку временных зон
+
+
+ELASTICSEARCH_DSL = {
+    'default': {
+        'hosts': os.environ.get('ELASTICSEARCH_HOST', 'localhost') + ':9200'
+    },
+}
