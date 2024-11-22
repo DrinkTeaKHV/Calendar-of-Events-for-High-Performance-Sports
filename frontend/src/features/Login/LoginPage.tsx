@@ -14,6 +14,7 @@ const LoginPage: React.FC = () => {
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+
     setCredentialsState((prev) => ({
       ...prev,
       [name]: value,
@@ -22,7 +23,9 @@ const LoginPage: React.FC = () => {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     dispatch(setLoading());
+
     try {
       const response = await login(credentials).unwrap();
 
