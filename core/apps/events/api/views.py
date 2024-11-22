@@ -1,11 +1,13 @@
+from django.conf import settings
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from elasticsearch_dsl import Q
 from rest_framework import filters, viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
 
 from apps.events.api.serializers import EventSerializer
 from apps.events.documents import EventDocument
@@ -27,19 +29,26 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
     ordering_fields = ['start_date', 'end_date']
     ordering = ['start_date']
 
+    @method_decorator(cache_page(settings.CACHE_TTL, key_prefix='events_list'))
     @swagger_auto_schema(
         operation_description="Получить список мероприятий с возможностью поиска и фильтрации",
         manual_parameters=[
             openapi.Parameter('q', openapi.IN_QUERY, description="Поисковый запрос", type=openapi.TYPE_STRING),
             openapi.Parameter('sport_type', openapi.IN_QUERY, description="Вид спорта", type=openapi.TYPE_STRING),
-            openapi.Parameter('discipline_program', openapi.IN_QUERY, description="Дисциплина, программа", type=openapi.TYPE_STRING),
+            openapi.Parameter('discipline_program', openapi.IN_QUERY, description="Дисциплина, программа",
+                              type=openapi.TYPE_STRING),
             openapi.Parameter('city', openapi.IN_QUERY, description="Город", type=openapi.TYPE_STRING),
-            openapi.Parameter('gender_age_group', openapi.IN_QUERY, description="Пол и возрастная группа", type=openapi.TYPE_STRING),
+            openapi.Parameter('gender_age_group', openapi.IN_QUERY, description="Пол и возрастная группа",
+                              type=openapi.TYPE_STRING),
             openapi.Parameter('event_type', openapi.IN_QUERY, description="Тип соревнования", type=openapi.TYPE_STRING),
-            openapi.Parameter('participants', openapi.IN_QUERY, description="Количество участников", type=openapi.TYPE_INTEGER),
-            openapi.Parameter('start_date', openapi.IN_QUERY, description="Дата начала (YYYY-MM-DD)", type=openapi.TYPE_STRING, format=openapi.FORMAT_DATE),
-            openapi.Parameter('end_date', openapi.IN_QUERY, description="Дата окончания (YYYY-MM-DD)", type=openapi.TYPE_STRING, format=openapi.FORMAT_DATE),
-            openapi.Parameter('ordering', openapi.IN_QUERY, description="Поле для сортировки", type=openapi.TYPE_STRING),
+            openapi.Parameter('participants', openapi.IN_QUERY, description="Количество участников",
+                              type=openapi.TYPE_INTEGER),
+            openapi.Parameter('start_date', openapi.IN_QUERY, description="Дата начала (YYYY-MM-DD)",
+                              type=openapi.TYPE_STRING, format=openapi.FORMAT_DATE),
+            openapi.Parameter('end_date', openapi.IN_QUERY, description="Дата окончания (YYYY-MM-DD)",
+                              type=openapi.TYPE_STRING, format=openapi.FORMAT_DATE),
+            openapi.Parameter('ordering', openapi.IN_QUERY, description="Поле для сортировки",
+                              type=openapi.TYPE_STRING),
             openapi.Parameter('page', openapi.IN_QUERY, description="Номер страницы", type=openapi.TYPE_INTEGER),
             openapi.Parameter('page_size', openapi.IN_QUERY, description="Размер страницы", type=openapi.TYPE_INTEGER),
         ],
@@ -55,13 +64,27 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
         start_date = request.query_params.get('start_date', None)
         end_date = request.query_params.get('end_date', None)
 
-        if q or any([sport_type, discipline_program, city, gender_age_group, event_type, participants, start_date, end_date]):
+        if q or any([sport_type, discipline_program, city, gender_age_group, event_type, participants, start_date,
+                     end_date]):
             search = EventDocument.search()
 
             must_queries = []
 
             if q:
-                multi_match_query = Q("multi_match", query=q, fields=['name', 'sport_type', 'discipline_program', 'city', 'event_type'])
+                # Поиск по этим значениям
+                multi_match_query = Q(
+                    "multi_match",
+                    query=q,
+                    fields=[
+                        'name',
+                        'sport_type',
+                        'discipline_program',
+                        'city',
+                        'gender_age_group',
+                        'event_type',
+                    ],
+                    fuzziness='AUTO',
+                )
                 must_queries.append(multi_match_query)
 
             if sport_type:

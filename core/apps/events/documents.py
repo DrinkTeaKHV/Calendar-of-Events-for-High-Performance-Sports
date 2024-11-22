@@ -1,55 +1,40 @@
 from django_elasticsearch_dsl import Document, fields
 from django_elasticsearch_dsl.registries import registry
-from elasticsearch_dsl import analyzer, token_filter
 
 from .models import Event
-
-# Определяем фильтры
-russian_stop = token_filter(
-    'russian_stop',
-    type='stop',
-    stopwords='_russian_'  # Используем предопределённый список русских стоп-слов
-)
-
-russian_stemmer = token_filter(
-    'russian_stemmer',
-    type='stemmer',
-    language='russian'
-)
-
-# Определяем анализатор
-russian_analyzer = analyzer(
-    'russian_analyzer',
-    tokenizer='standard',
-    filter=[
-        'lowercase',
-        russian_stop,
-        russian_stemmer,
-    ],
-)
 
 
 @registry.register_document
 class EventDocument(Document):
     name = fields.TextField(
-        analyzer=russian_analyzer,
-        fields={'raw': fields.KeywordField()}
+        analyzer='ngram_analyzer',
+        search_analyzer='standard',
+        fields={'keyword': fields.KeywordField()},
     )
-    # Определяем остальные поля, по которым будет происходить поиск
     sport_type = fields.TextField(
-        analyzer=russian_analyzer,
+        analyzer='ngram_analyzer',
+        search_analyzer='standard',
+        fields={'keyword': fields.KeywordField()},
     )
     discipline_program = fields.TextField(
-        analyzer=russian_analyzer,
+        analyzer='ngram_analyzer',
+        search_analyzer='standard',
+        fields={'keyword': fields.KeywordField()},
     )
     city = fields.TextField(
-        analyzer=russian_analyzer,
+        analyzer='ngram_analyzer',
+        search_analyzer='standard',
+        fields={'keyword': fields.KeywordField()},
     )
     gender_age_group = fields.TextField(
-        analyzer=russian_analyzer,
+        analyzer='ngram_analyzer',
+        search_analyzer='standard',
+        fields={'keyword': fields.KeywordField()},
     )
     event_type = fields.TextField(
-        analyzer=russian_analyzer,
+        analyzer='ngram_analyzer',
+        search_analyzer='standard',
+        fields={'keyword': fields.KeywordField()},
     )
 
     class Index:
@@ -67,9 +52,23 @@ class EventDocument(Document):
                         'type': 'stemmer',
                         'language': 'russian',
                     },
+                    'ngram_filter': {
+                        'type': 'edge_ngram',
+                        'min_gram': 2,
+                        'max_gram': 20,
+                    },
                 },
                 'analyzer': {
-                    'russian_analyzer': {
+                    'ngram_analyzer': {
+                        'tokenizer': 'standard',
+                        'filter': [
+                            'lowercase',
+                            'russian_stop',
+                            'russian_stemmer',
+                            'ngram_filter',
+                        ],
+                    },
+                    'standard_russian': {
                         'tokenizer': 'standard',
                         'filter': [
                             'lowercase',

@@ -1,9 +1,11 @@
+import random
+
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from faker import Faker
-import random
 
 from apps.events.models import Event
+
 
 class Command(BaseCommand):
     help = 'Generate fake events'
