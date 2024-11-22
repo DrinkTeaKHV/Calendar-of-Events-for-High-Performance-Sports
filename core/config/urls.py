@@ -7,8 +7,10 @@ from django.urls import include, path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions, routers
+from rest_framework_simplejwt.views import TokenRefreshView
 
 from apps.events.api.views import EventViewSet
+from apps.users.api.views import TelegramTokenObtainPairView
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -30,6 +32,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     path('api/', include(router.urls)),
+    path('api/token/', TelegramTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
 
 if settings.DEBUG:

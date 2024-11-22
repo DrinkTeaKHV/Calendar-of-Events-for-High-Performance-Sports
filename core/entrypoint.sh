@@ -24,6 +24,10 @@ echo "Rebuilding Elasticsearch index..."
 python manage.py search_index --rebuild -f
 echo "Elasticsearch index rebuilt"
 
+# Запуск start_bott
+python manage.py start_bot &
+echo "start_bott"
+
 # Сбор статических файлов
 python manage.py collectstatic --noinput --clear
 echo "Static files collected"
