@@ -1,7 +1,7 @@
 import os
-import sentry_sdk
-
 from pathlib import Path
+
+import sentry_sdk
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -27,6 +27,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_yasg',
     'corsheaders',
+    'django_elasticsearch_dsl',
+    'django_elasticsearch_dsl_drf',
 
     'apps.users',
     'apps.events'
@@ -126,6 +128,12 @@ USE_TZ = True  # Включаем поддержку временных зон
 
 ELASTICSEARCH_DSL = {
     'default': {
-        'hosts': os.environ.get('ELASTICSEARCH_HOST', 'localhost') + ':9200'
+        'hosts': "http://" + os.environ.get('ELASTICSEARCH_HOST', 'localhost') + ':9200'
     },
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
 }
