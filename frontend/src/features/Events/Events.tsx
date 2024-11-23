@@ -1,13 +1,15 @@
 import React from 'react';
 import {Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Checkbox, Pagination, Chip} from '@mui/material';
-
-const rows = Array.from({ length: 10 }, (_, index) => ({
-  id: index,
-  title: 'Typography',
-  value: 'Cell',
-}));
+import {useGetEventsQuery} from "../../store/slices/apiSlice";
 
 const Events: React.FC = () => {
+  const headers = ['№ СМ', 'Вид спорта', 'Место проведения', 'Пол', 'Тип соревнования', 'Начало', 'Окончание'];
+  const eventsResponse = useGetEventsQuery();
+
+  if (!eventsResponse?.data) {
+    return <div>Loading or no data available...</div>;
+  }
+
   return (
     <>
       <div style={{ padding: '16px' }}>
@@ -20,24 +22,23 @@ const Events: React.FC = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell padding="checkbox">
-                  <Checkbox />
-                </TableCell>
-                {['Head', 'Head', 'Head', 'Head', 'Head', 'Head'].map((header, index) => (
+                <TableCell padding="checkbox"><Checkbox /></TableCell>
+                {headers.map((header, index) => (
                   <TableCell key={index}>{header}</TableCell>
                 ))}
               </TableRow>
             </TableHead>
             <TableBody>
-              {rows.map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell padding="checkbox">
-                    <Checkbox />
-                  </TableCell>
-                  <TableCell>{row.title}</TableCell>
-                  {['', '', '', '', ''].map((_, index) => (
-                    <TableCell key={index}>{row.value}</TableCell>
-                  ))}
+              {eventsResponse.data.results.map((event) => (
+                <TableRow key={event.id}>
+                  <TableCell padding="checkbox"><Checkbox /></TableCell>
+                  <TableCell sx={{ fontSize: '0.65rem' }} key={event.id}>{event.sm_number}</TableCell>
+                  <TableCell sx={{ fontSize: '0.65rem' }} key={event.id}>{event.sport}</TableCell>
+                  <TableCell sx={{ fontSize: '0.65rem' }} key={event.id}>{event.location}</TableCell>
+                  <TableCell sx={{ fontSize: '0.65rem' }} key={event.id}>{event.gender}</TableCell>
+                  <TableCell sx={{ fontSize: '0.65rem' }} key={event.id}>{event.name}</TableCell>
+                  <TableCell sx={{ fontSize: '0.65rem' }} key={event.id}>{event.start_date}</TableCell>
+                  <TableCell sx={{ fontSize: '0.65rem' }} key={event.id}>{event.end_date}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
