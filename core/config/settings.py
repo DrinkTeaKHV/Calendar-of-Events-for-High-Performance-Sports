@@ -1,13 +1,15 @@
 import os
-import sentry_sdk
-
+from datetime import timedelta
 from pathlib import Path
+
+import sentry_sdk
 from dotenv import load_dotenv
 
 load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY')
+TELEGRAM_BOT_API_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 SITE_URL = os.getenv('SITE_URL')
 DEBUG = os.getenv('DEBUG', True)
 SENTRY_DSN = os.getenv('SENTRY_DSN')
@@ -25,10 +27,15 @@ INSTALLED_APPS = [
 
     'django_filters',
     'rest_framework',
+    'rest_framework_simplejwt',
     'drf_yasg',
     'corsheaders',
+    'django_elasticsearch_dsl',
+    'django_elasticsearch_dsl_drf',
 
-    'apps.users'
+    'apps.users',
+    'apps.events',
+    'apps.tgbot'
 
 ]
 
@@ -121,3 +128,39 @@ TIME_ZONE = 'Asia/Vladivostok'  # Устанавливаем временную 
 
 # Убедитесь, что USE_TZ включен
 USE_TZ = True  # Включаем поддержку временных зон
+
+
+ELASTICSEARCH_DSL = {
+    'default': {
+        'hosts': "http://" + os.environ.get('ELASTICSEARCH_HOST', 'localhost') + ':9200'
+    },
+}
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': f'redis://{os.getenv('REDIS_HOST', "localhost")}:{os.getenv('REDIS_PORT', 6379)}/1',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
+
+CACHE_TTL = 60 * 15  # 15 минут
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),  # Настрой время жизни токена
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    # Другие настройки можно оставить по умолчанию или настроить при необходимости
+}
