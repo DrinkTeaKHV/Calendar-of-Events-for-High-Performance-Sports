@@ -1,6 +1,6 @@
-import authReducer from '../features/Login/loginSlice';
 import {combineReducers} from '@reduxjs/toolkit';
 import themeReducer from './slices/themeSlice';
+import authReducer from './slices/authSlice';
 import {apiSlice} from "./slices/apiSlice";
 
 const rootReducer = combineReducers({
