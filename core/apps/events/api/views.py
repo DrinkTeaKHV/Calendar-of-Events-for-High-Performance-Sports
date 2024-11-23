@@ -88,7 +88,6 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
                         'competition_type.name',
                         'location',
                         'gender',
-                        'participants_count',
                     ],
                     fuzziness='AUTO',
                 )

@@ -20,7 +20,7 @@ class PDFUploadAdmin(admin.ModelAdmin):
 
     def run_parsing(self, request, queryset):
         for pdf in queryset.filter(parsed=False):
-            parse_events_pdf(pdf.file.path)
+            parse_events_pdf.delay(pdf.file.path)
             pdf.parsed = True
             pdf.save(update_fields=['parsed'])
         self.message_user(request, "Парсинг запущен для выбранных файлов.")
