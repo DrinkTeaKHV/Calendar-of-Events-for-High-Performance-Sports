@@ -1,20 +1,10 @@
 import React, {useState} from 'react';
 import {TCalendarEvent} from "../../definitions/types/TCalendarEvent";
 import {generateRandomEvents} from "../../utils/generateRandomEvents";
-import {Calendar, Views, DateLocalizer} from 'react-big-calendar';
-import {format, parse, startOfWeek, getDay} from 'date-fns';
+import {localizer, messages} from "../../utils/calendar.settings";
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import {dateFnsLocalizer} from 'react-big-calendar';
+import {Calendar, Views} from 'react-big-calendar';
 import styles from './style.module.css';
-
-const locales = { 'en-US': require('date-fns/locale/en-US') };
-const localizer: DateLocalizer = dateFnsLocalizer({
-  format,
-  parse,
-  startOfWeek,
-  getDay,
-  locales,
-});
 
 const CalendarComponent: React.FC = () => {
   const startRange = new Date();
@@ -28,18 +18,15 @@ const CalendarComponent: React.FC = () => {
   );
 
   const handleSelectEvent = (event: TCalendarEvent) => {
-    alert(`Event: ${event.title}\nDescription: ${event.desc}`);
+    alert(`Событие: ${event.title}\nОписание: ${event.desc}`);
   };
 
-  const handleSelectSlot = (slotInfo: {
-    start: Date;
-    end: Date;
-    action: string;
-    slots: Date[];
-  }) => {
-    const title = window.prompt('New Event name');
+  const handleSelectSlot = (slotInfo: { start: Date; end: Date; action: string; slots: Date[]; }) => {
+    const title = window.prompt('Название нового события');
+
     if (title) {
-      const desc = window.prompt('Event Description') || '';
+      const desc = window.prompt('Описание события') || '';
+
       setEvents([
         ...events,
         {
@@ -68,6 +55,7 @@ const CalendarComponent: React.FC = () => {
       border: 'none',
       display: 'block',
     };
+
     return { style };
   };
 
@@ -76,6 +64,8 @@ const CalendarComponent: React.FC = () => {
       <Calendar
         selectable
         events={events}
+        culture="ru-RU"
+        messages={messages}
         startAccessor="start"
         endAccessor="end"
         localizer={localizer}

@@ -3,3 +3,4 @@
 backend/.idea
 nginx/certs
 backend/.venv
+.DS_Store
