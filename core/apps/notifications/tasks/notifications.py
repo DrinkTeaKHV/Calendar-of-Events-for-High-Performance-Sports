@@ -11,47 +11,6 @@ from config.celery import app
 
 
 @app.task
-def send_new_event_notification(event_id):
-    try:
-        event = Event.objects.get(id=event_id)
-        favorites = FavoriteEvent.objects.filter(event=event)
-        for favorite in favorites:
-            user = favorite.user
-            if user.email or user.telegram_id:
-                message = (f"Новое мероприятие добавлено: {event.name}"
-                           f"\nДата начала: {event.start_date}\nМесто проведения: {event.location}")
-
-                # Отправка Email
-                email_sent = False
-                if user.email and user.receive_new_event_notifications:
-                    send_mail(
-                        subject='Новое спортивное мероприятие',
-                        message=message,
-                        from_email=settings.DEFAULT_FROM_EMAIL,
-                        recipient_list=[user.email],
-                        fail_silently=False,
-                    )
-                    email_sent = True
-
-                # Отправка Telegram
-                telegram_sent = False
-                if user.telegram_id and user.receive_new_event_notifications:
-                    telegram_sent = sync_send_message(user.telegram_id, message)
-
-                # Сохранение уведомления
-                Notification.objects.create(
-                    user=user,
-                    event=event,
-                    notification_type='NEW_EVENT',
-                    message=message,
-                    telegram_sent=telegram_sent,
-                    email_sent=email_sent
-                )
-    except Event.DoesNotExist:
-        pass  # Можно логировать ошибку
-
-
-@app.task
 def send_event_update_notification(event_id):
     try:
         event = Event.objects.get(id=event_id)
