@@ -32,25 +32,20 @@ export const generateRandomEvent = (
   endRange: Date
 ): TCalendarEvent => {
   const title = sampleTitles[generateRandomInt(0, sampleTitles.length - 1)];
-  const allDay = Math.random() < 0.3; // 30% chance the event is all day
-
-  // Generate a random start date within the range
+  const allDay = Math.random() < 0.3;
   const start = generateRandomDate(startRange, endRange);
-
-  // Determine event duration
   let end: Date;
+
   if (allDay) {
-    // All-day events last for one day
     end = new Date(start);
     end.setDate(start.getDate() + 1);
   } else {
-    // Events last between 1 to 4 hours
     const durationHours = generateRandomInt(1, 4);
+
     end = new Date(start);
     end.setHours(start.getHours() + durationHours);
   }
 
-  // Optional description
   const descriptions = [
     'Discuss project milestones.',
     'Plan for the next sprint.',
@@ -63,6 +58,7 @@ export const generateRandomEvent = (
     'Product demo.',
     'Market analysis.',
   ];
+
   const desc = descriptions[generateRandomInt(0, descriptions.length - 1)];
 
   return {
@@ -81,8 +77,10 @@ export const generateRandomEvents = (
   endRange: Date
 ): TCalendarEvent[] => {
   const events: TCalendarEvent[] = [];
+
   for (let i = 0; i < numberOfEvents; i++) {
     events.push(generateRandomEvent(startRange, endRange));
   }
+
   return events;
 };

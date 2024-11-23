@@ -1,11 +1,11 @@
 import React, {useState} from 'react';
 import {TCalendarEvent} from "../../definitions/types/TCalendarEvent";
+import {generateRandomEvents} from "../../utils/generateRandomEvents";
 import {Calendar, Views, DateLocalizer} from 'react-big-calendar';
 import {format, parse, startOfWeek, getDay} from 'date-fns';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import {dateFnsLocalizer} from 'react-big-calendar';
 import styles from './style.module.css';
-import {generateRandomEvents} from "../../utils/generateRandomEvents";
 
 const locales = { 'en-US': require('date-fns/locale/en-US') };
 const localizer: DateLocalizer = dateFnsLocalizer({
