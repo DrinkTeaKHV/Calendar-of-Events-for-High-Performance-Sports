@@ -1,4 +1,5 @@
 import re
+
 import pandas as pd
 from PyPDF2 import PdfReader
 
@@ -452,6 +453,7 @@ def parse_file(file_path):
     df['Минимальный возраст'], df['Максимальный возраст'] = zip(*df['Участники'].apply(extract_min_max_age))
     df['Минимальный возраст'] = df['Минимальный возраст'].fillna(0).astype(int)
     df['Максимальный возраст'] = df['Максимальный возраст'].fillna(0).astype(int)
+
     def extract_gender(category):
         """
         Определяет пол участников на основе ключевых слов в строке категории.

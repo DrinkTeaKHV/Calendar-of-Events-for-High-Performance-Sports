@@ -12,6 +12,7 @@ event_index.settings(
     number_of_replicas=0
 )
 
+
 @registry.register_document
 class EventDocument(Document):
     sport = fields.ObjectField(

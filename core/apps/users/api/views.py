@@ -14,7 +14,6 @@ class TelegramTokenObtainPairView(TokenObtainPairView):
     serializer_class = TelegramTokenObtainPairSerializer
 
 
-
 class UserSettingsViewSet(viewsets.ModelViewSet):
     """
     API endpoint для настройки уведомлений пользователя.

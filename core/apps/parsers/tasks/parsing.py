@@ -4,7 +4,6 @@ import os
 from apps.events.models import CompetitionType, Event, Sport
 from apps.parsers.models import ParsingLog
 from apps.parsers.parser import parse_file
-
 from config.celery import app
 
 logger = logging.getLogger(__name__)

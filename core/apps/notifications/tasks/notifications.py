@@ -9,6 +9,7 @@ from apps.notifications.models import Notification
 from apps.tgbot.bot.messages import sync_send_message
 from config.celery import app
 
+
 @app.task
 def send_new_event_notification(event_id):
     try:
@@ -17,7 +18,8 @@ def send_new_event_notification(event_id):
         for favorite in favorites:
             user = favorite.user
             if user.email or user.telegram_id:
-                message = f"Новое мероприятие добавлено: {event.name}\nДата начала: {event.start_date}\nМесто проведения: {event.location}"
+                message = (f"Новое мероприятие добавлено: {event.name}"
+                           f"\nДата начала: {event.start_date}\nМесто проведения: {event.location}")
 
                 # Отправка Email
                 email_sent = False
@@ -57,7 +59,8 @@ def send_event_update_notification(event_id):
         for favorite in favorites:
             user = favorite.user
             if user.email or user.telegram_id:
-                message = f"Мероприятие обновлено: {event.name}\nНовая дата начала: {event.start_date}\nНовое место проведения: {event.location}"
+                message = (f"Мероприятие обновлено: {event.name}"
+                           f"\nНовая дата начала: {event.start_date}\nНовое место проведения: {event.location}")
 
                 # Отправка Email
                 email_sent = False
@@ -105,7 +108,8 @@ def send_event_reminders():
         for favorite in favorites:
             user = favorite.user
             if user.email or user.telegram_id:
-                message = f"Напоминаем о мероприятии: {event.name}\nДата начала: {event.start_date}\nМесто проведения: {event.location}"
+                message = (f"Напоминаем о мероприятии: {event.name}"
+                           f"\nДата начала: {event.start_date}\nМесто проведения: {event.location}")
 
                 # Отправка Email
                 email_sent = False
@@ -141,7 +145,8 @@ def send_event_reminders():
         for favorite in favorites:
             user = favorite.user
             if user.email or user.telegram_id:
-                message = f"Напоминаем о мероприятии: {event.name}\nДата начала: {event.start_date}\nМесто проведения: {event.location}"
+                message = (f"Напоминаем о мероприятии: {event.name}"
+                           f"\nДата начала: {event.start_date}\nМесто проведения: {event.location}")
 
                 # Отправка Email
                 email_sent = False

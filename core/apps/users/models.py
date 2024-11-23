@@ -19,6 +19,7 @@ class UserExtended(AbstractUser):
         default=True,
         verbose_name='Получать напоминания о мероприятиях'
     )
+
     class Meta:
         verbose_name = "Пользователь"
         verbose_name_plural = "Пользователи"

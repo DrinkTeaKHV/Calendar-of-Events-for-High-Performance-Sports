@@ -47,7 +47,8 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
         manual_parameters=[
             openapi.Parameter('q', openapi.IN_QUERY, description="Поисковый запрос", type=openapi.TYPE_STRING),
             openapi.Parameter('sport_type', openapi.IN_QUERY, description="Вид спорта", type=openapi.TYPE_STRING),
-            openapi.Parameter('competition_type', openapi.IN_QUERY, description="Тип соревнования", type=openapi.TYPE_STRING),
+            openapi.Parameter('competition_type', openapi.IN_QUERY, description="Тип соревнования",
+                              type=openapi.TYPE_STRING),
             openapi.Parameter('city', openapi.IN_QUERY, description="Город", type=openapi.TYPE_STRING),
             openapi.Parameter('gender', openapi.IN_QUERY, description="Пол", type=openapi.TYPE_STRING),
             openapi.Parameter('participants_count', openapi.IN_QUERY, description="Количество участников",
