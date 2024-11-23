@@ -8,6 +8,10 @@
     "prod": "cross-env REACT_APP_API_URL=http://95.163.229.215/api react-scripts build"
   },
   "dependencies": {
+    "@emotion/react": "^11.13.5",
+    "@emotion/styled": "^11.13.5",
+    "@mui/icons-material": "^6.1.8",
+    "@mui/material": "^6.1.8",
     "axios": "^1.7.2",
     "classnames": "^2.5.1",
     "date-fns": "^4.1.0",

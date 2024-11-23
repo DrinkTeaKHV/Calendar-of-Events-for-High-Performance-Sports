@@ -48,7 +48,7 @@ const CalendarComponent: React.FC = () => {
     isSelected: boolean
   ) => {
     const style = {
-      backgroundColor: isSelected ? '#3174ad' : '#ff7f50',
+      backgroundColor: isSelected ? '#1876D1' : '#1876D1',
       borderRadius: '0px',
       opacity: 0.8,
       color: 'white',
