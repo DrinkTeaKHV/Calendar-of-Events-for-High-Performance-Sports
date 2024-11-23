@@ -10,7 +10,7 @@ from rest_framework import permissions, routers
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from apps.events.api.views import EventViewSet
-from apps.users.api.views import TelegramTokenObtainPairView
+from apps.users.api.views import TelegramTokenObtainPairView, UserSettingsViewSet, LogoutView
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -23,6 +23,7 @@ schema_view = get_schema_view(
 )
 router = routers.DefaultRouter()
 router.register(r'events', EventViewSet)
+router.register(r'settings', UserSettingsViewSet, basename='settings')
 urlpatterns = [
 
     path('api/swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
@@ -33,6 +34,7 @@ urlpatterns = [
 
     path('api/', include(router.urls)),
     path('api/login/', TelegramTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/logout', LogoutView.as_view(), name='logout'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
 

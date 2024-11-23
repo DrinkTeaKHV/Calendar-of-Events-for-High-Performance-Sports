@@ -17,3 +17,4 @@ def sync_send_message(chat_id: int, text: str, reply_markup: dict = None):
     }
     response = requests.post(url, data=data)
     response.raise_for_status()  # Проверка на успешность запроса
+    return response.status_code == 200
