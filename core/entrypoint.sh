@@ -34,4 +34,8 @@ echo "Static files collected"
 
 # Запуск Gunicorn
 echo "Starting Gunicorn"
-exec gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers=4
+gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers=4
+# Start server
+echo "Starting server"
+# run the container CMD
+exec "$@"

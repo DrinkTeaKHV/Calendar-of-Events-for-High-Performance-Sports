@@ -23,6 +23,12 @@ class ParsingLog(models.Model):
         null=True,
         verbose_name='Сообщение'
     )
+    errors = models.JSONField(
+        blank=True,
+        null=True,
+        verbose_name='Ошибки',
+        help_text='Список ошибок, произошедших при парсинге'
+    )
 
     class Meta:
         verbose_name = 'Лог парсинга'

@@ -1,6 +1,5 @@
 from datetime import timedelta
 
-from celery import shared_task
 from django.conf import settings
 from django.core.mail import send_mail
 from django.utils import timezone
@@ -8,9 +7,9 @@ from django.utils import timezone
 from apps.events.models import Event, FavoriteEvent
 from apps.notifications.models import Notification
 from apps.tgbot.bot.messages import sync_send_message
+from config.celery import app
 
-
-@shared_task
+@app.task
 def send_new_event_notification(event_id):
     try:
         event = Event.objects.get(id=event_id)
@@ -50,7 +49,7 @@ def send_new_event_notification(event_id):
         pass  # Можно логировать ошибку
 
 
-@shared_task
+@app.task
 def send_event_update_notification(event_id):
     try:
         event = Event.objects.get(id=event_id)
@@ -90,7 +89,7 @@ def send_event_update_notification(event_id):
         pass  # Можно логировать ошибку
 
 
-@shared_task
+@app.task
 def send_event_reminders():
     """
     Задача, которая отправляет напоминания за неделю и за два дня до начала мероприятия.

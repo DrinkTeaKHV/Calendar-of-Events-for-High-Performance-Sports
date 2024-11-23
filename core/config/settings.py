@@ -31,7 +31,6 @@ INSTALLED_APPS = [
     'drf_yasg',
     'corsheaders',
     'django_elasticsearch_dsl',
-    'django_elasticsearch_dsl_drf',
 
     'apps.users',
     'apps.events',
