@@ -1,9 +1,10 @@
 import logging
-import string
 import random
+import string
+
 from aiogram import Bot, Dispatcher, types
-from aiogram.types import BotCommand
 from aiogram.filters import Command
+from aiogram.types import BotCommand
 from django.conf import settings
 
 from apps.users.models import UserExtended

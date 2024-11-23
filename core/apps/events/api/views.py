@@ -1,4 +1,7 @@
+# apps/events/views.py
+
 from django.conf import settings
+from django.db.models import Count
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django_filters.rest_framework import DjangoFilterBackend
@@ -6,12 +9,13 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from elasticsearch_dsl import Q
 from rest_framework import filters, viewsets
+from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
-from apps.events.api.serializers import EventSerializer
-from apps.events.documents import EventDocument
-from apps.events.models import Event
+from ..documents import EventDocument
+from ..models import Event
+from .serializers import EventSerializer
 
 
 class EventPagination(PageNumberPagination):
@@ -21,11 +25,21 @@ class EventPagination(PageNumberPagination):
 
 
 class EventViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    API endpoint для просмотра мероприятий с возможностью поиска и фильтрации.
+    """
     queryset = Event.objects.all()
     serializer_class = EventSerializer
     pagination_class = EventPagination
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
-    filterset_fields = ['sport_type', 'discipline_program', 'city', 'gender_age_group', 'event_type', 'participants']
+    filterset_fields = [
+        'sport__name',  # Используем поля модели, а не verbose_name
+        'competition_type__name',
+        'location',
+        'gender',
+        'participants_count',
+        'reserve',
+    ]
     ordering_fields = ['start_date', 'end_date']
     ordering = ['start_date']
 
@@ -34,14 +48,12 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
         operation_description="Получить список мероприятий с возможностью поиска и фильтрации",
         manual_parameters=[
             openapi.Parameter('q', openapi.IN_QUERY, description="Поисковый запрос", type=openapi.TYPE_STRING),
-            openapi.Parameter('sport_type', openapi.IN_QUERY, description="Вид спорта", type=openapi.TYPE_STRING),
-            openapi.Parameter('discipline_program', openapi.IN_QUERY, description="Дисциплина, программа",
+            openapi.Parameter('sport__name', openapi.IN_QUERY, description="Вид спорта", type=openapi.TYPE_STRING),
+            openapi.Parameter('competition_type__name', openapi.IN_QUERY, description="Тип соревнования",
                               type=openapi.TYPE_STRING),
             openapi.Parameter('city', openapi.IN_QUERY, description="Город", type=openapi.TYPE_STRING),
-            openapi.Parameter('gender_age_group', openapi.IN_QUERY, description="Пол и возрастная группа",
-                              type=openapi.TYPE_STRING),
-            openapi.Parameter('event_type', openapi.IN_QUERY, description="Тип соревнования", type=openapi.TYPE_STRING),
-            openapi.Parameter('participants', openapi.IN_QUERY, description="Количество участников",
+            openapi.Parameter('gender', openapi.IN_QUERY, description="Пол", type=openapi.TYPE_STRING),
+            openapi.Parameter('participants_count', openapi.IN_QUERY, description="Количество участников",
                               type=openapi.TYPE_INTEGER),
             openapi.Parameter('start_date', openapi.IN_QUERY, description="Дата начала (YYYY-MM-DD)",
                               type=openapi.TYPE_STRING, format=openapi.FORMAT_DATE),
@@ -56,16 +68,14 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
     def list(self, request, *args, **kwargs):
         q = request.query_params.get('q', None)
         sport_type = request.query_params.get('sport_type', None)
-        discipline_program = request.query_params.get('discipline_program', None)
+        competition_type = request.query_params.get('competition_type', None)
         city = request.query_params.get('city', None)
-        gender_age_group = request.query_params.get('gender_age_group', None)
-        event_type = request.query_params.get('event_type', None)
-        participants = request.query_params.get('participants', None)
+        gender = request.query_params.get('gender', None)
+        participants_count = request.query_params.get('participants_count', None)
         start_date = request.query_params.get('start_date', None)
         end_date = request.query_params.get('end_date', None)
 
-        if q or any([sport_type, discipline_program, city, gender_age_group, event_type, participants, start_date,
-                     end_date]):
+        if q or any([sport_type, competition_type, city, gender, participants_count, start_date, end_date]):
             search = EventDocument.search()
 
             must_queries = []
@@ -77,30 +87,27 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
                     query=q,
                     fields=[
                         'name',
-                        'sport_type',
-                        'discipline_program',
-                        'city',
-                        'gender_age_group',
-                        'event_type',
+                        'sport.name',
+                        'competition_type.name',
+                        'location',
+                        'gender',
                     ],
                     fuzziness='AUTO',
                 )
                 must_queries.append(multi_match_query)
 
             if sport_type:
-                must_queries.append(Q('term', sport_type__keyword=sport_type))
-            if discipline_program:
-                must_queries.append(Q('term', discipline_program__keyword=discipline_program))
+                must_queries.append(Q('term', sport__name__keyword=sport_type))
+            if competition_type:
+                must_queries.append(Q('term', competition_type__name__keyword=competition_type))
             if city:
-                must_queries.append(Q('term', city__keyword=city))
-            if gender_age_group:
-                must_queries.append(Q('term', gender_age_group__keyword=gender_age_group))
-            if event_type:
-                must_queries.append(Q('term', event_type__keyword=event_type))
-            if participants:
+                must_queries.append(Q('term', location__keyword=city))
+            if gender:
+                must_queries.append(Q('term', gender__keyword=gender))
+            if participants_count:
                 try:
-                    participants = int(participants)
-                    must_queries.append(Q('term', participants=participants))
+                    participants_count = int(participants_count)
+                    must_queries.append(Q('term', participants_count=participants_count))
                 except ValueError:
                     pass  # Можно добавить обработку ошибки
 
@@ -117,7 +124,7 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
 
             # Выполняем поиск и получаем результаты
             response = search.execute()
-            ids = [hit.meta.id for hit in response]
+            ids = [int(hit.meta.id) for hit in response]
             queryset = Event.objects.filter(id__in=ids)
 
             # Применяем стандартную фильтрацию и пагинацию
@@ -132,3 +139,50 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
         else:
             # Стандартное поведение
             return super().list(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="Получить уникальные значения для фильтров мероприятий",
+        manual_parameters=[],
+        responses={
+            200: openapi.Response(
+                description="Уникальные значения фильтров",
+                examples={
+                    "application/json": {
+                        "sports": ["Футбол", "Баскетбол", "Волейбол"],
+                        "competition_types": ["Чемпионат", "Турнир"],
+                        "locations": ["Москва", "Санкт-Петербург", "Екатеринбург"],
+                        "genders": ["male", "female"],
+                        "participants_counts": [
+                            {"participants_count": 10, "count": 3},
+                            {"participants_count": 20, "count": 5},
+                            {"participants_count": 30, "count": 2}
+                        ]
+                    }
+                }
+            )
+        }
+    )
+    @action(detail=False, methods=['get'], url_path='filter-options')
+    def filter_options(self, request, *args, **kwargs):
+        """
+        Получить уникальные значения для фильтров: вид спорта, тип соревнования, место, пол и количество участников.
+        """
+        sports = Event.objects.values_list('sport__name', flat=True).distinct()
+        competition_types = Event.objects.values_list('competition_type__name', flat=True).distinct()
+        locations = Event.objects.values_list('location', flat=True).distinct()
+        genders = Event.objects.values_list('gender', flat=True).distinct()
+        participants_counts = (
+            Event.objects
+            .values('participants_count')
+            .annotate(count=Count('participants_count'))
+            .order_by('participants_count')
+            .filter(participants_count__isnull=False)
+        )
+
+        return Response({
+            "sports": list(sports),
+            "competition_types": list(competition_types),
+            "locations": list(locations),
+            "genders": list(genders),
+            "participants_counts": list(participants_counts),
+        })

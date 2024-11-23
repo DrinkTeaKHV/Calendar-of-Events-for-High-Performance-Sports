@@ -1,94 +1,74 @@
-from django_elasticsearch_dsl import Document, fields
+from django_elasticsearch_dsl import Document, Index, fields
 from django_elasticsearch_dsl.registries import registry
 
-from .models import Event
+from .models import CompetitionType, Event, Sport
+
+# Определяем индекс
+event_index = Index('events')
+
+# Настройки индекса
+event_index.settings(
+    number_of_shards=1,
+    number_of_replicas=0
+)
 
 
 @registry.register_document
 class EventDocument(Document):
-    name = fields.TextField(
-        analyzer='ngram_analyzer',
-        search_analyzer='standard',
-        fields={'keyword': fields.KeywordField()},
+    sport = fields.ObjectField(
+        properties={
+            'id': fields.IntegerField(),
+            'name': fields.TextField(),
+        }
     )
-    sport_type = fields.TextField(
-        analyzer='ngram_analyzer',
-        search_analyzer='standard',
-        fields={'keyword': fields.KeywordField()},
-    )
-    discipline_program = fields.TextField(
-        analyzer='ngram_analyzer',
-        search_analyzer='standard',
-        fields={'keyword': fields.KeywordField()},
-    )
-    city = fields.TextField(
-        analyzer='ngram_analyzer',
-        search_analyzer='standard',
-        fields={'keyword': fields.KeywordField()},
-    )
-    gender_age_group = fields.TextField(
-        analyzer='ngram_analyzer',
-        search_analyzer='standard',
-        fields={'keyword': fields.KeywordField()},
-    )
-    event_type = fields.TextField(
-        analyzer='ngram_analyzer',
-        search_analyzer='standard',
-        fields={'keyword': fields.KeywordField()},
+    competition_type = fields.ObjectField(
+        properties={
+            'id': fields.IntegerField(),
+            'name': fields.TextField(),
+        }
     )
 
     class Index:
+        # Название индекса в Elasticsearch
         name = 'events'
         settings = {
             'number_of_shards': 1,
-            'number_of_replicas': 0,
-            'analysis': {
-                'filter': {
-                    'russian_stop': {
-                        'type': 'stop',
-                        'stopwords': '_russian_',
-                    },
-                    'russian_stemmer': {
-                        'type': 'stemmer',
-                        'language': 'russian',
-                    },
-                    'ngram_filter': {
-                        'type': 'edge_ngram',
-                        'min_gram': 2,
-                        'max_gram': 20,
-                    },
-                },
-                'analyzer': {
-                    'ngram_analyzer': {
-                        'tokenizer': 'standard',
-                        'filter': [
-                            'lowercase',
-                            'russian_stop',
-                            'russian_stemmer',
-                            'ngram_filter',
-                        ],
-                    },
-                    'standard_russian': {
-                        'tokenizer': 'standard',
-                        'filter': [
-                            'lowercase',
-                            'russian_stop',
-                            'russian_stemmer',
-                        ],
-                    },
-                },
-            },
+            'number_of_replicas': 0
         }
 
     class Django:
-        model = Event
+        model = Event  # Модель, которую будем индексировать
+
+        # Поля модели, которые будут индексироваться в Elasticsearch
         fields = [
-            'number',
-            'sm_in_ekp',
+            'sm_number',
+            'name',
+            'participants',
+            'gender',
             'start_date',
             'end_date',
-            'country',
-            'region',
-            'venue',
-            'participants',
+            'location',
+            'participants_count',
+            'reserve',
+            'month',
+            'year',
+            'min_age',
+            'max_age',
         ]
+
+        # Связи ForeignKey
+        related_models = [Sport, CompetitionType]
+
+    def get_queryset(self):
+        """Определяем queryset для индексации."""
+        return super(EventDocument, self).get_queryset().select_related(
+            'sport',
+            'competition_type'
+        )
+
+    def get_instances_from_related(self, related_instance):
+        """Получаем события из связанных моделей."""
+        if isinstance(related_instance, Sport):
+            return related_instance.event_set.all()
+        elif isinstance(related_instance, CompetitionType):
+            return related_instance.event_set.all()
