@@ -1,6 +1,7 @@
 import React from 'react';
 import {Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Checkbox, Pagination, Chip} from '@mui/material';
 import {useGetEventsQuery} from "../../store/slices/apiSlice";
+import {formatDate} from "../../utils/formatDate";
 
 const Events: React.FC = () => {
   const headers = ['№ СМ', 'Вид спорта', 'Место проведения', 'Пол', 'Тип соревнования', 'Начало', 'Окончание'];
@@ -37,8 +38,8 @@ const Events: React.FC = () => {
                   <TableCell sx={{ fontSize: '0.65rem' }} key={event.id}>{event.location}</TableCell>
                   <TableCell sx={{ fontSize: '0.65rem' }} key={event.id}>{event.gender}</TableCell>
                   <TableCell sx={{ fontSize: '0.65rem' }} key={event.id}>{event.name}</TableCell>
-                  <TableCell sx={{ fontSize: '0.65rem' }} key={event.id}>{event.start_date}</TableCell>
-                  <TableCell sx={{ fontSize: '0.65rem' }} key={event.id}>{event.end_date}</TableCell>
+                  <TableCell sx={{ fontSize: '0.65rem' }} key={event.id}>{formatDate(event.start_date)}</TableCell>
+                  <TableCell sx={{ fontSize: '0.65rem' }} key={event.id}>{formatDate(event.end_date)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
