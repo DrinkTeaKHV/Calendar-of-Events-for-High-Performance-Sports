@@ -1,4 +1,3 @@
-
 from rest_framework import serializers
 
 from apps.events.models import CompetitionType, Event, Sport
@@ -19,8 +18,14 @@ class CompetitionTypeSerializer(serializers.ModelSerializer):
 
 
 class EventSerializer(serializers.ModelSerializer):
-    sport = SportSerializer(read_only=True)
-    competition_type = CompetitionTypeSerializer(read_only=True)
+    sport = serializers.SerializerMethodField(read_only=True)
+    competition_type = serializers.SerializerMethodField(read_only=True)
+
+    def get_sport(self, obj):
+        return obj.sport.name
+
+    def get_competition_type(self, obj):
+        return obj.competition_type.name
 
     class Meta:
         model = Event

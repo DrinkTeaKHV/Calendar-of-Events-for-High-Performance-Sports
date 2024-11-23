@@ -1,6 +1,7 @@
 # apps/events/views.py
 
 from django.conf import settings
+from django.db.models import Count
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django_filters.rest_framework import DjangoFilterBackend
@@ -8,6 +9,7 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from elasticsearch_dsl import Q
 from rest_framework import filters, viewsets
+from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
@@ -46,8 +48,8 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
         operation_description="Получить список мероприятий с возможностью поиска и фильтрации",
         manual_parameters=[
             openapi.Parameter('q', openapi.IN_QUERY, description="Поисковый запрос", type=openapi.TYPE_STRING),
-            openapi.Parameter('sport_type', openapi.IN_QUERY, description="Вид спорта", type=openapi.TYPE_STRING),
-            openapi.Parameter('competition_type', openapi.IN_QUERY, description="Тип соревнования",
+            openapi.Parameter('sport__name', openapi.IN_QUERY, description="Вид спорта", type=openapi.TYPE_STRING),
+            openapi.Parameter('competition_type__name', openapi.IN_QUERY, description="Тип соревнования",
                               type=openapi.TYPE_STRING),
             openapi.Parameter('city', openapi.IN_QUERY, description="Город", type=openapi.TYPE_STRING),
             openapi.Parameter('gender', openapi.IN_QUERY, description="Пол", type=openapi.TYPE_STRING),
@@ -137,3 +139,50 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
         else:
             # Стандартное поведение
             return super().list(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="Получить уникальные значения для фильтров мероприятий",
+        manual_parameters=[],
+        responses={
+            200: openapi.Response(
+                description="Уникальные значения фильтров",
+                examples={
+                    "application/json": {
+                        "sports": ["Футбол", "Баскетбол", "Волейбол"],
+                        "competition_types": ["Чемпионат", "Турнир"],
+                        "locations": ["Москва", "Санкт-Петербург", "Екатеринбург"],
+                        "genders": ["male", "female"],
+                        "participants_counts": [
+                            {"participants_count": 10, "count": 3},
+                            {"participants_count": 20, "count": 5},
+                            {"participants_count": 30, "count": 2}
+                        ]
+                    }
+                }
+            )
+        }
+    )
+    @action(detail=False, methods=['get'], url_path='filter-options')
+    def filter_options(self, request, *args, **kwargs):
+        """
+        Получить уникальные значения для фильтров: вид спорта, тип соревнования, место, пол и количество участников.
+        """
+        sports = Event.objects.values_list('sport__name', flat=True).distinct()
+        competition_types = Event.objects.values_list('competition_type__name', flat=True).distinct()
+        locations = Event.objects.values_list('location', flat=True).distinct()
+        genders = Event.objects.values_list('gender', flat=True).distinct()
+        participants_counts = (
+            Event.objects
+            .values('participants_count')
+            .annotate(count=Count('participants_count'))
+            .order_by('participants_count')
+            .filter(participants_count__isnull=False)
+        )
+
+        return Response({
+            "sports": list(sports),
+            "competition_types": list(competition_types),
+            "locations": list(locations),
+            "genders": list(genders),
+            "participants_counts": list(participants_counts),
+        })
