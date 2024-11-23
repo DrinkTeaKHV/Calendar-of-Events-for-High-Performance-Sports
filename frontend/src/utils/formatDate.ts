@@ -7,7 +7,12 @@ export const formatDate = (dateString: string): string => {
     year: 'numeric',
   };
 
-  const formatter: Intl.DateTimeFormat = new Intl.DateTimeFormat('ru-RU', options);
+  const formatter = new Intl.DateTimeFormat('ru-RU', options);
+  let formattedDate = formatter.format(date);
 
-  return formatter.format(date);
+  if (formattedDate.endsWith(' г.')) {
+    formattedDate = formattedDate.slice(0, -3);
+  }
+
+  return formattedDate;
 };

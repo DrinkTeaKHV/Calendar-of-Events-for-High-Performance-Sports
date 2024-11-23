@@ -1,12 +1,13 @@
 import {TAuthCredentials} from "../../definitions/types/TAuthCredentials";
 import {TEventsResponse} from "../../definitions/types/TEventsResponse";
-import {createApi, fetchBaseQuery} from '@reduxjs/toolkit/query/react';
+import {createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import {TAuthResponse} from "../../definitions/types/TAuthResponse";
 
 const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
 
 const baseQuery = fetchBaseQuery({
   baseUrl: REACT_APP_API_URL,
+  // Uncomment and modify if you need to set headers
   // prepareHeaders: (headers) => {
   //   const token = localStorage.getItem('token');
   //
@@ -30,8 +31,8 @@ export const apiSlice = createApi({
         body: credentials,
       }),
     }),
-    getEvents: builder.query<TEventsResponse, void>({
-      query: () => '/events/',
+    getEvents: builder.query<TEventsResponse, { page?: number; pageSize?: number }>({
+      query: ({ page = 1, pageSize = 10 }) => `/events/?page=${page}&page_size=${pageSize}`,
       providesTags: ['Events'],
     }),
   }),
@@ -39,5 +40,5 @@ export const apiSlice = createApi({
 
 export const {
   useLoginMutation,
-  useGetEventsQuery
+  useGetEventsQuery,
 } = apiSlice;
