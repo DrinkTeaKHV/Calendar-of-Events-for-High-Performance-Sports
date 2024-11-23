@@ -25,7 +25,7 @@ export const apiSlice = createApi({
   endpoints: (builder) => ({
     login: builder.mutation<TAuthResponse, TAuthCredentials>({
       query: (credentials) => ({
-        url: '/auth/login/',
+        url: '/login/',
         method: 'POST',
         body: credentials,
       }),
