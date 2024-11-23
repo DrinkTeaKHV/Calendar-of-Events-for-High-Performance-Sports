@@ -9,6 +9,7 @@ import {Box} from "@mui/material";
 import './main.global.css';
 import {BrowserRouter as Router, Routes, Route} from 'react-router-dom';
 import Login from "./features/Login/Login";
+import Notifications from "./features/Notifications/Notifications";
 
 const App = () => {
     const sidebarIsActive = useAppSelector((state) => state.sidebar.sidebar);
@@ -44,6 +45,15 @@ const App = () => {
                 <Route path="/login" element={
                     <Box sx={{display: 'flex', height: '100vh', overflow: 'hidden'}}>
                         <Login></Login>
+                    </Box>
+                }/>
+
+                <Route path="/settings" element={
+                    <Box sx={{width: '100%', position: 'fixed'}}>
+                        <TopNavigationBar/>
+                        <Box sx={{display: 'flex', height: '100vh', overflow: 'hidden'}}>
+                            <Notifications></Notifications>
+                        </Box>
                     </Box>
                 }/>
 
