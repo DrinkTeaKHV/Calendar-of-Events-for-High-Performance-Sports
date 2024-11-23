@@ -1,12 +1,10 @@
-version: "3.9"
-
 services:
   core:
     build: ../core
     volumes:
       - static_volume:/app/static/
       - media_volume:/app/media/
-    entrypoint: ["sh", "entrypoint.sh"]
+    entrypoint: [ "sh", "entrypoint.sh" ]
     ports:
       - "8000:8000" # API доступен на локальной машине
     env_file:
@@ -14,9 +12,27 @@ services:
     depends_on:
       - postgres_db
       - redis
+      - elasticsearch
     environment:
       - POSTGRES_HOST=postgres_db
       - REDIS_HOST=redis
+      - ELASTICSEARCH_HOST=elasticsearch
+  celery:
+    build: ../core
+    volumes:
+      - static_volume:/app/static/
+      - media_volume:/app/media/
+    depends_on:
+      - core
+      - redis
+    command: celery -A config worker --concurrency=4 --loglevel=info
+    env_file:
+      - ../.env
+    environment:
+      - POSTGRES_HOST=postgres_db
+      - REDIS_HOST=redis
+      - ELASTICSEARCH_HOST=elasticsearch
+    restart: always
 
   postgres_db:
     image: postgres:16
@@ -30,7 +46,30 @@ services:
     ports:
       - "6379:6379"
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.10.1
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - http.host=0.0.0.0
+      - http.port=9200
+      - transport.host=127.0.0.1
+    ports:
+      - "9200:9200"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    mem_limit: 1g
+    depends_on:
+      - redis
+    restart: on-failure
+
 volumes:
   postgres_data:
   static_volume:
   media_volume:
+  esdata:
