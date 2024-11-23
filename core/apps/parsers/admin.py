@@ -13,7 +13,7 @@ class ParsingLogAdmin(admin.ModelAdmin):
 
 @admin.register(PDFUpload)
 class PDFUploadAdmin(admin.ModelAdmin):
-    list_display = ('file', 'uploaded_at', 'parsed', 'parsing_log')
+    list_display = ('id', 'file', 'uploaded_at', 'parsed', 'parsing_log')
     list_filter = ('parsed', 'uploaded_at')
     search_fields = ('file__name',)
     actions = ['run_parsing']

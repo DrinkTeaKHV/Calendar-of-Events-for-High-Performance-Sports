@@ -11,9 +11,9 @@ from rest_framework import filters, viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
-from .serializers import EventSerializer
 from ..documents import EventDocument
 from ..models import Event
+from .serializers import EventSerializer
 
 
 class EventPagination(PageNumberPagination):

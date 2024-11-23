@@ -1,9 +1,10 @@
 
-import os
 import logging
+import os
+
 from celery import shared_task
 
-from apps.events.models import Sport, CompetitionType, Event
+from apps.events.models import CompetitionType, Event, Sport
 from apps.parsers.models import ParsingLog
 from apps.parsers.parser import extract_text_from_pdf, parse_text_to_dataframe
 

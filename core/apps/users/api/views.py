@@ -1,10 +1,13 @@
 from rest_framework import permissions, viewsets
-from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .serializers import TelegramTokenObtainPairSerializer, UserNotificationSettingsSerializer
 from ..models import UserExtended
+from .serializers import (
+    TelegramTokenObtainPairSerializer,
+    UserNotificationSettingsSerializer,
+)
 
 
 class TelegramTokenObtainPairView(TokenObtainPairView):

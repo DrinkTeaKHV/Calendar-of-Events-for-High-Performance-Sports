@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Event, Sport, CompetitionType, FavoriteEvent
+from .models import CompetitionType, Event, FavoriteEvent, Sport
 
 
 @admin.register(Sport)
