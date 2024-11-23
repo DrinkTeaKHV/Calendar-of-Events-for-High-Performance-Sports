@@ -35,7 +35,8 @@ INSTALLED_APPS = [
 
     'apps.users',
     'apps.events',
-    'apps.tgbot'
+    'apps.tgbot',
+    'apps.parsers'
 
 ]
 

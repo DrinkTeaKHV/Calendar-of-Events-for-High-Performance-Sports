@@ -1,24 +1,19 @@
-from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from django.utils.translation import gettext_lazy as _
 
 from apps.users.models import UserExtended
 
 
-@admin.register(UserExtended)
 class UserExtendedAdmin(UserAdmin):
-    """ Админка пользователя """
-    fieldsets = (
-        (None, {'fields': ('username', 'password', 'telegram_id')}),
-        (_('Personal info'), {
+    model = UserExtended
+    list_display = ['username', 'email', 'telegram_id', 'receive_new_event_notifications', 'receive_event_update_notifications', 'receive_event_reminders', 'is_staff']
+    list_filter = ['receive_new_event_notifications', 'receive_event_update_notifications', 'receive_event_reminders', 'is_staff']
+    fieldsets = UserAdmin.fieldsets + (
+        (None, {
             'fields': (
-                'first_name', 'last_name',
-            )}
-         ),
-        (_("Permissions"), {
-            "fields": (
-                "is_active", "is_superuser",
-            )},
-         ),
-        (_("Important dates"), {"fields": ("last_login", "date_joined")}),
+                'telegram_id',
+                'receive_new_event_notifications',
+                'receive_event_update_notifications',
+                'receive_event_reminders',
+            )
+        }),
     )
