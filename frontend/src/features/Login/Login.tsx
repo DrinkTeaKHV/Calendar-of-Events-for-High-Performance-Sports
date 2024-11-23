@@ -8,7 +8,7 @@ import styles from './styles.module.css';
 
 const Login: React.FC = () => {
   const [credentials, setCredentialsState] = useState<TAuthCredentials>({ email: '', password: '' });
-  const [login, { data, isLoading, isSuccess, isError, error }] = useLoginMutation();
+  const [login, { isLoading, isError, error }] = useLoginMutation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
@@ -31,7 +31,7 @@ const Login: React.FC = () => {
 
       dispatch(setCredentials(response));
 
-      navigate('/dashboard');
+      navigate('/');
     } catch (err: any) {
       const errorMessage = err?.data?.message || 'An error occurred during login.';
 

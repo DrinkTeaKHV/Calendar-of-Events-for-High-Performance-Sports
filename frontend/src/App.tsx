@@ -9,6 +9,7 @@ import {Box} from "@mui/material";
 import './main.global.css';
 
 const App = () => {
+  const sidebarIsActive = useAppSelector((state) => state.sidebar.sidebar);
   const mode = useAppSelector((state) => state.mode.mode);
 
   return (
@@ -24,7 +25,7 @@ const App = () => {
             marginTop: '64px',
           }}
         >
-          <Sidebar />
+          {sidebarIsActive && <Sidebar />}
           <Box component="main" sx={{ flexGrow: 1, p: 3, overflow: 'auto' }}>
             {mode === EModeSwitcher.events
               ? <Events />

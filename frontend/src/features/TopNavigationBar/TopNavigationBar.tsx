@@ -5,10 +5,14 @@ import {EModeSwitcher} from "../../definitions/enums/EModeSwitcher";
 import {useAppSelector} from "../../hooks/useAppSelector";
 import {useAppDispatch} from "../../hooks/useAppDispatch";
 import {setMode} from "../../store/slices/modeSlice";
+import {toggleSidebar} from "../../store/slices/siderbarSlice";
 
 const TopNavigationBar: React.FC = () => {
   const mode = useAppSelector((state) => state.mode.mode);
   const dispatch = useAppDispatch();
+
+  const handleSidebarClick = () =>
+    dispatch(toggleSidebar());
 
   const handleViewChange = (_: React.MouseEvent<HTMLElement>, mode: EModeSwitcher) =>
       dispatch(setMode(mode));
@@ -16,7 +20,12 @@ const TopNavigationBar: React.FC = () => {
   return (
     <AppBar position="static" sx={{ height: '64px' }}>
       <Toolbar sx={{ height: '64px', minHeight: '64px' }}>
-        <IconButton edge="start" color="inherit" aria-label="menu">
+        <IconButton
+          edge="start"
+          color="inherit"
+          aria-label="menu"
+          onClick={handleSidebarClick}
+        >
           <Menu />
         </IconButton>
         <Typography variant="h6" sx={{ flexGrow: 1 }}>
