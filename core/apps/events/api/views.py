@@ -140,6 +140,7 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
             # Стандартное поведение
             return super().list(request, *args, **kwargs)
 
+    @method_decorator(cache_page(settings.CACHE_TTL, key_prefix='filter_list'))
     @swagger_auto_schema(
         operation_description="Получить уникальные значения для фильтров мероприятий",
         manual_parameters=[],
