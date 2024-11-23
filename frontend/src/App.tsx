@@ -1,10 +1,10 @@
 import React from 'react';
+import CalendarComponent from "./features/CalendarComponent/CalendarComponent";
 import './main.global.css';
-import LoginPage from "./features/Login/LoginPage";
 
 const App = () => {
     return (
-        <LoginPage />
+        <CalendarComponent />
     );
 }
 
