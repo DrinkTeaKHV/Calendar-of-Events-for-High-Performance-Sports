@@ -6,7 +6,7 @@ import {useAppDispatch} from '../../hooks/useAppDispatch';
 import {useNavigate} from 'react-router-dom';
 import styles from './styles.module.css';
 
-const LoginPage: React.FC = () => {
+const Login: React.FC = () => {
   const [credentials, setCredentialsState] = useState<TAuthCredentials>({ email: '', password: '' });
   const [login, { data, isLoading, isSuccess, isError, error }] = useLoginMutation();
   const dispatch = useAppDispatch();
@@ -80,4 +80,4 @@ const LoginPage: React.FC = () => {
   );
 };
 
-export default LoginPage;
+export default Login;
