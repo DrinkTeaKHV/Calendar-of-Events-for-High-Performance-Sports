@@ -3,7 +3,7 @@ export type TFiltersResponse = {
   locations: string[];
   participants_counts: TParticipantsCount[];
   competition_types: string[];
-  genders: string[];
+  gender: string[];
 }
 
 type TParticipantsCount = {

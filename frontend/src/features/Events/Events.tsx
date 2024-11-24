@@ -31,7 +31,7 @@ const Events: React.FC = () => {
     '№ СМ',
     'Вид спорта',
     'Место проведения',
-    'Кол. участников',
+    'Макс. участников',
     'Пол',
     'Тип соревнования',
     'Начало',
@@ -48,7 +48,7 @@ const Events: React.FC = () => {
     location: filters.location,
     participantsCount: filters.participantsCount,
     competitionType: filters.competitionType,
-    genders: filters.gender,
+    gender: filters.gender,
   });
 
   const totalPages = data ? Math.ceil(data.count / pageSize) : 1;

@@ -5,6 +5,6 @@ export type TEventsParams = {
   location?: string | null;
   participantsCount?: number | null;
   competitionType?: string | null;
-  genders?: string | null;
+  gender?: string | null;
   q?: string | null;
 }
