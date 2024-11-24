@@ -61,30 +61,16 @@ const Events: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
-        <CircularProgress />
-      </div>
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+          <CircularProgress />
+        </div>
     );
-  }
-
-  if (isError) {
-    const status = error && 'status' in error ? error.status : null;
-
-    if (status === 404 || status === 400) {
-      return <Typography variant="h6" align="center">Нет доступных данных.</Typography>;
-    } else {
-      return <Typography variant="h6" align="center">Ошибка загрузки данных.</Typography>;
-    }
-  }
-
-  if (!data || data.results.length === 0) {
-    return <Typography variant="h6" align="center">Нет доступных данных.</Typography>;
   }
 
   const handleCheckboxChange = async (eventId: number, isChecked: boolean) => {
     if (isChecked) {
       try {
-        await addToFavorites({ event: eventId }).unwrap();
+        await addToFavorites({event: eventId}).unwrap();
         setSelectedEvents((prev) => [...prev, eventId]);
       } catch (error) {
         console.error('Ошибка при добавлении в избранное:', error);
@@ -96,8 +82,8 @@ const Events: React.FC = () => {
   };
 
   const handlePageChange = (
-    event: React.ChangeEvent<unknown>,
-    value: number
+      event: React.ChangeEvent<unknown>,
+      value: number
   ) => {
     if (value <= totalPages && value >= 1) {
       setPage(value);
@@ -135,92 +121,113 @@ const Events: React.FC = () => {
     {
       type: 'participantsCount',
       label: filters.participantsCount
-        ? `до ${filters.participantsCount} человек`
-        : '',
+          ? `до ${filters.participantsCount} человек`
+          : '',
     },
     { type: 'competitionType', label: filters.competitionType },
     { type: 'gender', label: filters.gender },
     { type: 'q', label: filters.q },
   ].filter((filter) => filter.label);
 
-  return (
-    <div style={{ padding: '16px' }}>
-      <div
+
+  if (!data || data.results.length === 0 || isError) {
+    return <div
         style={{
           display: 'flex',
           gap: '8px',
           marginBottom: '16px',
           flexWrap: 'wrap',
         }}
-      >
-        {activeFilters.map((filter) => (
+    >
+      {activeFilters.map((filter) => (
           <Chip
-            key={filter.type}
-            label={filter.label}
-            onDelete={() => handleDelete(filter.type)}
+              key={filter.type}
+              label={filter.label}
+              onDelete={() => handleDelete(filter.type)}
           />
-        ))}
-      </div>
-      <TableContainer>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell padding="checkbox">
-                <Checkbox />
-              </TableCell>
-              {headers.map((header, index) => (
-                <TableCell key={index}>{header}</TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {data.results.map((event) => (
-              <TableRow key={event.id}>
-                <TableCell padding="checkbox">
-                  <Checkbox checked={event.is_favorite}
-                            onChange={(e) => handleCheckboxChange(event.id, e.target.checked)}
-                  />
-                </TableCell>
-                <TableCell sx={{ fontSize: '0.65rem' }}>
-                  {event.sm_number}
-                </TableCell>
-                <TableCell sx={{ fontSize: '0.65rem' }}>
-                  {event.sport}
-                </TableCell>
-                <TableCell sx={{ fontSize: '0.65rem' }}>
-                  {event.location}
-                </TableCell>
-                <TableCell sx={{ fontSize: '0.65rem' }}>
-                  {event.participants_count}
-                </TableCell>
-                <TableCell sx={{ fontSize: '0.65rem' }}>
-                  {event.gender}
-                </TableCell>
-                <TableCell sx={{ fontSize: '0.65rem' }}>
-                  {event.competition_type}
-                </TableCell>
-                <TableCell sx={{ fontSize: '0.65rem' }}>
-                  {formatDate(event.start_date)}
-                </TableCell>
-                <TableCell sx={{ fontSize: '0.65rem' }}>
-                  {formatDate(event.end_date)}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      {totalPages > 1 && (
-        <Pagination
-          count={totalPages}
-          page={page}
-          onChange={handlePageChange}
-          variant="outlined"
-          shape="rounded"
-          sx={{ mt: 2, float: 'right' }}
-        />
-      )}
+      ))}
+      <Typography variant="h6" align="center">Нет доступных данных.</Typography>;
     </div>
+  }
+
+  return (
+      <div style={{ padding: '16px' }}>
+        <div
+            style={{
+              display: 'flex',
+              gap: '8px',
+              marginBottom: '16px',
+              flexWrap: 'wrap',
+            }}
+        >
+          {activeFilters.map((filter) => (
+              <Chip
+                  key={filter.type}
+                  label={filter.label}
+                  onDelete={() => handleDelete(filter.type)}
+              />
+          ))}
+        </div>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell padding="checkbox">
+                  <Checkbox />
+                </TableCell>
+                {headers.map((header, index) => (
+                    <TableCell key={index}>{header}</TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {data.results.map((event) => (
+                  <TableRow key={event.id}>
+                    <TableCell padding="checkbox">
+                      <Checkbox checked={event.is_favorite}
+                                onChange={(e) => handleCheckboxChange(event.id, e.target.checked)}
+                      />
+                    </TableCell>
+                    <TableCell sx={{ fontSize: '0.65rem' }}>
+                      {event.sm_number}
+                    </TableCell>
+                    <TableCell sx={{ fontSize: '0.65rem' }}>
+                      {event.sport}
+                    </TableCell>
+                    <TableCell sx={{ fontSize: '0.65rem' }}>
+                      {event.location}
+                    </TableCell>
+                    <TableCell sx={{ fontSize: '0.65rem' }}>
+                      {event.participants_count}
+                    </TableCell>
+                    <TableCell sx={{ fontSize: '0.65rem' }}>
+                      {event.gender}
+                    </TableCell>
+                    <TableCell sx={{ fontSize: '0.65rem' }}>
+                      {event.competition_type}
+                    </TableCell>
+                    <TableCell sx={{ fontSize: '0.65rem' }}>
+                      {formatDate(event.start_date)}
+                    </TableCell>
+                    <TableCell sx={{ fontSize: '0.65rem' }}>
+                      {formatDate(event.end_date)}
+                    </TableCell>
+                  </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        {totalPages > 1 && (
+            <Pagination
+                count={totalPages}
+                page={page}
+                onChange={handlePageChange}
+                variant="outlined"
+                shape="rounded"
+                sx={{ mt: 2, float: 'right' }}
+            />
+        )}
+      </div>
   );
 };
 
