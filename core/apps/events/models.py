@@ -38,6 +38,19 @@ class CompetitionType(models.Model):
 
 
 class Event(models.Model):
+    STATUS_CHOICES = [
+        ('active', 'Активное'),
+        ('canceled', 'Отменено'),
+        ('moved', 'Перенесено'),
+    ]
+
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default='active',
+        verbose_name='Статус мероприятия'
+    )
+
     sm_number = models.CharField(
         unique=True,
         verbose_name='№ СМ в ЕКП'

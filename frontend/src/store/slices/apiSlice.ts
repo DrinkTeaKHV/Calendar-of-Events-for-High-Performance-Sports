@@ -5,6 +5,7 @@ import { TAuthResponse } from "../../definitions/types/TAuthResponse";
 import {TEventsParams} from "../../definitions/types/TEventsParams";
 import { TNotificationSettings } from "../../definitions/types/TNotificationSettings";
 import {TFiltersResponse} from "../../definitions/types/TFiltersResponse";
+import {TSport} from "../../definitions/types/TSport";
 
 const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
 
@@ -28,7 +29,7 @@ const baseQuery = fetchBaseQuery({
 export const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery: baseQuery,
-  tagTypes: ['User', 'Events', 'Filters', 'NotificationSettings'],
+  tagTypes: ['User', 'Events', 'Filters', 'NotificationSettings', 'Sports'],
   endpoints: (builder) => ({
     // Аутентификация
     login: builder.mutation<TAuthResponse, TAuthCredentials>({
@@ -61,6 +62,11 @@ export const apiSlice = createApi({
       query: () => '/settings/notifications/',
       providesTags: ['NotificationSettings'],
     }),
+    // получение видов спорта
+    getSports: builder.query<TSport[], void>({
+      query: () => '/sports/',
+      providesTags: ['Sports'],
+    }),
     // Обновление настроек уведомлений
     updateNotificationSettings: builder.mutation<void, TNotificationSettings>({
       query: (settings) => ({
@@ -81,6 +87,7 @@ export const {
   useLoginMutation,
   useGetEventsQuery,
   useGetNotificationSettingsQuery,
+  useGetSportsQuery,
   useUpdateNotificationSettingsMutation,
   useGetFiltersQuery,
 } = apiSlice;
