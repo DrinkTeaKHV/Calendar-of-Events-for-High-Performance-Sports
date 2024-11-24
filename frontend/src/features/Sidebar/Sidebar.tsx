@@ -133,11 +133,11 @@ const Sidebar: React.FC = () => {
         </ListItem>
         <ListItem>
           <FormControl fullWidth>
-            <InputLabel id="participants-label">Количество участников</InputLabel>
+            <InputLabel id="participants-label">Макс. кол. участников</InputLabel>
             <Select
               labelId="participants-label"
               value={filters.participantsCount !== null ? String(filters.participantsCount) : ''}
-              label="Количество участников"
+              label="Макс. кол. участников"
               onChange={handleParticipantsChange}
               sx={{ fontSize: '14px' }}
               MenuProps={{
