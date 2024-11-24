@@ -1,18 +1,20 @@
 import React, {useState} from 'react';
-import {Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Checkbox, Pagination, Chip} from '@mui/material';
-import {useGetEventsQuery} from "../../store/slices/apiSlice";
-import {formatDate} from "../../utils/formatDate";
+import {Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Checkbox, Pagination, Chip,} from '@mui/material';
+import {resetSport, resetLocation, resetParticipantsCount} from '../../store/slices/filtersSlice';
+import {useGetEventsQuery} from '../../store/slices/apiSlice';
+import {useSelector, useDispatch} from 'react-redux';
+import {formatDate} from '../../utils/formatDate';
+import {RootState} from '../../store/store';
 
 const Events: React.FC = () => {
-  const headers = ['№ СМ', 'Вид спорта', 'Место проведения', 'Пол', 'Тип соревнования', 'Начало', 'Окончание'];
+  const headers = [ '№ СМ', 'Вид спорта', 'Место проведения', 'Пол', 'Тип соревнования', 'Начало', 'Окончание',];
   const [page, setPage] = useState(1);
   const pageSize = 10;
-  const { data, error, isError, isLoading } = useGetEventsQuery({ page, pageSize });
-  const totalPages = data ? Math.ceil(data.count / pageSize) : 1;
+  const dispatch = useDispatch();
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+  const filters = useSelector((state: RootState) => state.filters);
+  const { data, error, isError } = useGetEventsQuery({ page, pageSize, ...filters,});
+  const totalPages = data ? Math.ceil(data.count / pageSize) : 1;
 
   if (isError) {
     const status = error && 'status' in error ? error.status : null;
@@ -33,17 +35,58 @@ const Events: React.FC = () => {
     return <div>No data available.</div>;
   }
 
-  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+  const handlePageChange = (
+    event: React.ChangeEvent<unknown>,
+    value: number
+  ) => {
     if (value <= totalPages && value >= 1) {
       setPage(value);
     }
   };
 
+  const handleDelete = (filterType: string) => {
+    switch (filterType) {
+      case 'sport':
+        dispatch(resetSport());
+        break;
+      case 'location':
+        dispatch(resetLocation());
+        break;
+      case 'participantsCount':
+        dispatch(resetParticipantsCount());
+        break;
+      default:
+        break;
+    }
+  };
+
+  const activeFilters = [
+    { type: 'sport', label: filters.sport },
+    { type: 'location', label: filters.location },
+    {
+      type: 'participantsCount',
+      label: filters.participantsCount
+        ? `до ${filters.participantsCount} человек`
+        : '',
+    },
+  ].filter((filter) => filter.label);
+
   return (
     <div style={{ padding: '16px' }}>
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-        {['Chip1', 'Chip2', 'Chip3'].map((label, index) => (
-          <Chip key={index} label={label} onDelete={() => { }} />
+      <div
+        style={{
+          display: 'flex',
+          gap: '8px',
+          marginBottom: '16px',
+          flexWrap: 'wrap',
+        }}
+      >
+        {activeFilters.map((filter) => (
+          <Chip
+            key={filter.type}
+            label={filter.label}
+            onDelete={() => handleDelete(filter.type)}
+          />
         ))}
       </div>
       <TableContainer>
@@ -64,13 +107,27 @@ const Events: React.FC = () => {
                 <TableCell padding="checkbox">
                   <Checkbox />
                 </TableCell>
-                <TableCell sx={{ fontSize: '0.65rem' }}>{event.sm_number}</TableCell>
-                <TableCell sx={{ fontSize: '0.65rem' }}>{event.sport}</TableCell>
-                <TableCell sx={{ fontSize: '0.65rem' }}>{event.location}</TableCell>
-                <TableCell sx={{ fontSize: '0.65rem' }}>{event.gender}</TableCell>
-                <TableCell sx={{ fontSize: '0.65rem' }}>{event.competition_type}</TableCell>
-                <TableCell sx={{ fontSize: '0.65rem' }}>{formatDate(event.start_date)}</TableCell>
-                <TableCell sx={{ fontSize: '0.65rem' }}>{formatDate(event.end_date)}</TableCell>
+                <TableCell sx={{ fontSize: '0.65rem' }}>
+                  {event.sm_number}
+                </TableCell>
+                <TableCell sx={{ fontSize: '0.65rem' }}>
+                  {event.sport}
+                </TableCell>
+                <TableCell sx={{ fontSize: '0.65rem' }}>
+                  {event.location}
+                </TableCell>
+                <TableCell sx={{ fontSize: '0.65rem' }}>
+                  {event.gender}
+                </TableCell>
+                <TableCell sx={{ fontSize: '0.65rem' }}>
+                  {event.competition_type}
+                </TableCell>
+                <TableCell sx={{ fontSize: '0.65rem' }}>
+                  {formatDate(event.start_date)}
+                </TableCell>
+                <TableCell sx={{ fontSize: '0.65rem' }}>
+                  {formatDate(event.end_date)}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

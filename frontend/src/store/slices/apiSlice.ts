@@ -1,7 +1,9 @@
 import {TAuthCredentials} from "../../definitions/types/TAuthCredentials";
+import {TFiltersResponse} from "../../definitions/types/TFiltersResponse";
 import {TEventsResponse} from "../../definitions/types/TEventsResponse";
 import {createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import {TAuthResponse} from "../../definitions/types/TAuthResponse";
+import {TEventsParams} from "../../definitions/types/TEventsParams";
 
 const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
 
@@ -22,7 +24,7 @@ const baseQuery = fetchBaseQuery({
 export const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery: baseQuery,
-  tagTypes: ['User', 'Events'],
+  tagTypes: ['User', 'Events', 'Filters'],
   endpoints: (builder) => ({
     login: builder.mutation<TAuthResponse, TAuthCredentials>({
       query: (credentials) => ({
@@ -31,9 +33,27 @@ export const apiSlice = createApi({
         body: credentials,
       }),
     }),
-    getEvents: builder.query<TEventsResponse, { page?: number; pageSize?: number }>({
-      query: ({ page = 1, pageSize = 10 }) => `/events/?page=${page}&page_size=${pageSize}`,
+    getEvents: builder.query<TEventsResponse, TEventsParams>({
+      query: ({ page, pageSize, sport, location, participantsCount }) => {
+        const params = new URLSearchParams();
+
+        params.append('page', page.toString());
+        params.append('pageSize', pageSize.toString());
+
+        if (sport) params.append('sport', sport);
+        if (location) params.append('location', location);
+        if (participantsCount) params.append('participantsCount', participantsCount.toString());
+
+        return {
+          url: `/events?${params.toString()}`,
+          method: 'GET',
+        };
+      },
       providesTags: ['Events'],
+    }),
+    getFilters: builder.query<TFiltersResponse, void>({
+      query: () => `/events/filter-options/`,
+      providesTags: ['Filters'],
     }),
   }),
 });
@@ -41,4 +61,5 @@ export const apiSlice = createApi({
 export const {
   useLoginMutation,
   useGetEventsQuery,
+  useGetFiltersQuery,
 } = apiSlice;
