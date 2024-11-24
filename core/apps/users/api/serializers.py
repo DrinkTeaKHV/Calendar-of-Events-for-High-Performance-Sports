@@ -1,16 +1,23 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
+from apps.events.models import Sport
 from apps.users.models import UserExtended
 
 
 class UserNotificationSettingsSerializer(serializers.ModelSerializer):
+    favorite_sports = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Sport.objects.all()
+    )
+
     class Meta:
         model = UserExtended
         fields = [
             'receive_new_event_notifications',
             'receive_event_update_notifications',
             'receive_event_reminders',
+            'favorite_sports',  # Новое поле
         ]
 
 

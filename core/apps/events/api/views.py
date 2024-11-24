@@ -9,10 +9,11 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from ..documents import EventDocument
-from ..models import Event
-from .serializers import EventSerializer
+from ..models import Event, Sport
+from .serializers import EventSerializer, SportSerializer
 
 
 class EventPagination(PageNumberPagination):
@@ -232,3 +233,14 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
             "genders": list(genders),
             "participants_counts": list(participants_counts),
         })
+
+
+class SportListAPIView(APIView):
+    """
+    API для получения списка видов спорта.
+    """
+
+    def get(self, request, *args, **kwargs):
+        sports = Sport.objects.all().order_by('name')  # Получение всех видов спорта, сортировка по имени
+        serializer = SportSerializer(sports, many=True)
+        return Response(serializer.data)
