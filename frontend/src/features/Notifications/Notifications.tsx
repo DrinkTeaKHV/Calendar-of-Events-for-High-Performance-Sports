@@ -1,20 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Checkbox, FormControlLabel, Typography, Button, CircularProgress, Alert } from '@mui/material';
-import {useGetNotificationSettingsQuery, useUpdateNotificationSettingsMutation} from "../../store/slices/apiSlice";
+import {
+    Box,
+    Checkbox,
+    FormControlLabel,
+    Typography,
+    Button,
+    CircularProgress,
+    Alert,
+    Select,
+    MenuItem,
+    InputLabel,
+    FormControl,
+    SelectChangeEvent,
+} from '@mui/material';
+import {
+    useGetNotificationSettingsQuery, useGetSportsQuery,
+    useUpdateNotificationSettingsMutation,
+} from "../../store/slices/apiSlice";
+import { TNotificationSettings } from "../../definitions/types/TNotificationSettings";
 
 const NotificationSettingsPage: React.FC = () => {
     const { data: settings, isLoading, isError } = useGetNotificationSettingsQuery();
+    const { data: sports, isLoading: isSportsLoading, isError: isSportsError } = useGetSportsQuery();
     const [updateSettings, { isLoading: isUpdating, isError: updateError }] = useUpdateNotificationSettingsMutation();
 
-    const [notificationSettings, setNotificationSettings] = useState({
+    const [notificationSettings, setNotificationSettings] = useState<TNotificationSettings>({
         receive_new_event_notifications: false,
         receive_event_update_notifications: false,
         receive_event_reminders: false,
+        favorite_sports: [], // Тип теперь `number[]`
     });
 
+    // Загружаем настройки уведомлений
     useEffect(() => {
         if (settings) {
-            // Обновляем состояние из полученных данных
             setNotificationSettings(settings);
         }
     }, [settings]);
@@ -27,6 +46,15 @@ const NotificationSettingsPage: React.FC = () => {
         }));
     };
 
+    // Обработка выбора любимых видов спорта
+    const handleSportsChange = (e: SelectChangeEvent<number[]>) => {
+        const value = e.target.value as number[]; // Приведение типа
+        setNotificationSettings((prev) => ({
+            ...prev,
+            favorite_sports: value,
+        }));
+    };
+
     const handleSave = async () => {
         try {
             await updateSettings(notificationSettings).unwrap();
@@ -36,8 +64,8 @@ const NotificationSettingsPage: React.FC = () => {
         }
     };
 
-    if (isLoading) return <CircularProgress />;
-    if (isError) return <Alert severity="error">Не удалось загрузить настройки</Alert>;
+    if (isLoading || isSportsLoading) return <CircularProgress />;
+    if (isError || isSportsError) return <Alert severity="error">Не удалось загрузить настройки</Alert>;
 
     return (
         <Box
@@ -89,6 +117,27 @@ const NotificationSettingsPage: React.FC = () => {
                     label="Получать напоминания о мероприятиях"
                 />
             </Box>
+
+            {/* Секция выбора любимых видов спорта */}
+            <FormControl fullWidth sx={{ marginTop: 2 }}>
+                <InputLabel id="favorite-sports-label">Любимые виды спорта</InputLabel>
+                <Select
+                    labelId="favorite-sports-label"
+                    multiple
+                    value={notificationSettings.favorite_sports}
+                    onChange={handleSportsChange}
+                    renderValue={(selected) =>
+                        selected.map((sportId) => sports?.find((sport) => sport.id === sportId)?.name).join(', ')
+                    }
+                >
+                    {sports?.map((sport) => (
+                        <MenuItem key={sport.id} value={sport.id}>
+                            {sport.name}
+                        </MenuItem>
+                    ))}
+                </Select>
+            </FormControl>
+
             <Button
                 variant="contained"
                 color="primary"
