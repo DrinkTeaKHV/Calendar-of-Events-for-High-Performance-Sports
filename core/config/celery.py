@@ -5,7 +5,7 @@ from celery.schedules import crontab
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 
-app = Celery('backend')
+app = Celery('config',  include=['apps.notifications.tasks'])
 
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
@@ -19,4 +19,4 @@ app.conf.beat_schedule = {
     },
 }
 
-app.conf.timezone = "UTC"  # Установите вашу временную зону (например, "Europe/Moscow" для Москвы)
+app.autodiscover_tasks()

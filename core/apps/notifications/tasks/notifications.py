@@ -3,7 +3,7 @@ from datetime import timedelta
 from django.utils.timezone import now
 
 from apps.notifications.tasks.utils import send_notification
-from apps.events.models import Event
+from apps.events.models import Event, FavoriteEvent
 from apps.users.models import UserExtended
 from config.celery import app
 
@@ -36,7 +36,6 @@ def notify_about_new_event(event_id):
                 event=event,
                 notification_type="NEW_EVENT",
                 message=message,
-                email_subject="Новое мероприятие"
             )
     except Event.DoesNotExist:
         pass
@@ -64,7 +63,7 @@ def notify_about_favorite_event_changes(event_id):
             send_notification(
                 user=user,
                 event=event,
-                notification_type="FAVORITE_EVENT_UPDATE",
+                notification_type="EVENT_UPDATE",
                 message=message,
             )
     except Event.DoesNotExist:
@@ -76,27 +75,21 @@ def send_daily_event_reminders():
     """
     Отправляет напоминания о мероприятиях, которые начнутся через 1 день.
     """
-
     today = now().date()
     tomorrow = today + timedelta(days=1)
-
-    # Мероприятия, начинающиеся завтра
-    events = Event.objects.filter(start_date=tomorrow)
-
-    for event in events:
-        favorites = event.favoriteevent_set.all()
-
+    favorites = FavoriteEvent.objects.filter(
+        event__start_date=tomorrow,
+    )
+    for favorite in favorites:
         message = (
-            f"Напоминаем о мероприятии: {event.name}\n"
-            f"Дата начала: {event.start_date}\n"
-            f"Место проведения: {event.location}"
+            f"Напоминаем о мероприятии: {favorite.event.name}\n"
+            f"Дата начала: {favorite.event.start_date}\n"
+            f"Место проведения: {favorite.event.location}"
         )
-
-        for favorite in favorites:
-            user = favorite.user
-            send_notification(
-                user=user,
-                event=event,
-                notification_type="REMINDER",
-                message=message,
-            )
+        user = favorite.user
+        send_notification(
+            user=user,
+            event=favorite.favoriteevent,
+            notification_type="REMINDER",
+            message=message,
+        )
