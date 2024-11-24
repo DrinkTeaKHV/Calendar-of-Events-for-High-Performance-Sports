@@ -40,7 +40,7 @@ export const apiSlice = createApi({
       }),
     }),
     getEvents: builder.query<TEventsResponse, TEventsParams>({
-      query: ({ page, pageSize, sport, location, participantsCount }) => {
+      query: ({ page, pageSize, sport, location, participantsCount, competitionType, genders, q }) => { // Include 'q'
         const params = new URLSearchParams();
 
         params.append('page', page.toString());
@@ -49,6 +49,9 @@ export const apiSlice = createApi({
         if (sport) params.append('sport_type', sport);
         if (location) params.append('location', location);
         if (participantsCount) params.append('max_participants_count', participantsCount.toString());
+        if (competitionType) params.append('competition_type', competitionType);
+        if (genders) params.append('genders', genders);
+        if (q) params.append('q', q);
 
         return {
           url: `/events?${params.toString()}`,

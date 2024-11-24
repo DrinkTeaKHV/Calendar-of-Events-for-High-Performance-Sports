@@ -1,8 +1,9 @@
 import React from 'react';
-import {createTheme, ThemeProvider} from "@mui/material";
+import {CircularProgress, createTheme} from "@mui/material";
+import {PersistGate} from "redux-persist/integration/react";
+import store, {persistor} from './store/store';
 import ReactDOM from 'react-dom/client';
 import {Provider} from 'react-redux';
-import store from './store/store';
 import App from './App';
 
 const theme = createTheme({
@@ -16,8 +17,11 @@ const theme = createTheme({
 const root = ReactDOM.createRoot(document.getElementById("react_root") as HTMLElement);
 root.render(
   <Provider store={store}>
-    <ThemeProvider theme={theme}>
+    <PersistGate
+      loading={<CircularProgress />}
+      persistor={persistor}
+    >
       <App />
-    </ThemeProvider>
-  </Provider>,
+    </PersistGate>
+  </Provider>
 );
