@@ -12,7 +12,14 @@ import {
   TableContainer,
   CircularProgress,
 } from '@mui/material';
-import {resetSport, resetLocation, resetParticipantsCount } from '../../store/slices/filtersSlice';
+import {
+  resetSport,
+  resetLocation,
+  resetParticipantsCount,
+  resetCompetitionType,
+  resetGender,
+  resetQ
+} from '../../store/slices/filtersSlice';
 import {useGetEventsQuery} from '../../store/slices/apiSlice';
 import {useAppSelector} from '../../hooks/useAppSelector';
 import {useAppDispatch} from '../../hooks/useAppDispatch';
@@ -33,20 +40,22 @@ const Events: React.FC = () => {
   const [page, setPage] = useState(1);
   const pageSize = 10;
   const dispatch = useAppDispatch();
-
   const filters = useAppSelector((state: RootState) => state.filters);
+  const { data, error, isError, isLoading } = useGetEventsQuery({
+    page,
+    pageSize,
+    sport: filters.sport,
+    location: filters.location,
+    participantsCount: filters.participantsCount,
+    competitionType: filters.competitionType,
+    genders: filters.gender,
+  });
 
-  // Logging current filters for debugging
-  useEffect(() => {
-    console.log('Current Filters:', filters);
-  }, [filters]);
-
-  const { data, error, isError, isLoading } = useGetEventsQuery({ page, pageSize, ...filters });
   const totalPages = data ? Math.ceil(data.count / pageSize) : 1;
 
   useEffect(() => {
     setPage(1);
-  }, [filters.sport, filters.location, filters.participantsCount]);
+  }, [filters.sport, filters.location, filters.participantsCount, filters.competitionType, filters.gender, filters.q]);
 
   if (isLoading) {
     return (
@@ -90,6 +99,15 @@ const Events: React.FC = () => {
       case 'participantsCount':
         dispatch(resetParticipantsCount());
         break;
+      case 'competitionType':
+        dispatch(resetCompetitionType());
+        break;
+      case 'gender':
+        dispatch(resetGender());
+        break;
+      case 'q':
+        dispatch(resetQ());
+        break;
       default:
         break;
     }
@@ -104,6 +122,9 @@ const Events: React.FC = () => {
         ? `до ${filters.participantsCount} человек`
         : '',
     },
+    { type: 'competitionType', label: filters.competitionType },
+    { type: 'gender', label: filters.gender },
+    { type: 'q', label: filters.q },
   ].filter((filter) => filter.label);
 
   return (

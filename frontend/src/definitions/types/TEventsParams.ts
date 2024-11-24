@@ -4,4 +4,7 @@ export type TEventsParams = {
   sport?: string | null;
   location?: string | null;
   participantsCount?: number | null;
+  competitionType?: string | null;
+  genders?: string | null;
+  q?: string | null;
 }
