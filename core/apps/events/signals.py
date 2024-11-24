@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from apps.notifications.tasks import notify_about_favorite_event_changes, notify_about_new_event, send_daily_event_reminders
+from apps.notifications.tasks import notify_about_favorite_event_changes, notify_about_new_event
 
 from .models import Event
 
@@ -13,4 +13,3 @@ def handle_event_save(sender, instance, created, **kwargs):
         notify_about_new_event.delay(instance.id)
     else:
         notify_about_favorite_event_changes.delay(instance.id)
-        send_daily_event_reminders.delay()
