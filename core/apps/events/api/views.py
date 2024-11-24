@@ -140,7 +140,7 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
 
             # Получаем список ID из результата
             ids = [int(hit.meta.id) for hit in response]
-            queryset = Event.objects.filter(id__in=ids)
+            queryset = self.queryset.filter(id__in=ids)
 
             # Применяем стандартную пагинацию
             page = self.paginate_queryset(queryset)
