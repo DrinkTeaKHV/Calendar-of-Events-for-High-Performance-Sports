@@ -1,20 +1,25 @@
 import React, {useEffect, useState} from 'react';
 import {TCalendarEvent} from "../../definitions/types/TCalendarEvent";
 import {localizer, messages} from "../../utils/calendar.settings";
+import {CircularProgress, Typography, Box} from '@mui/material';
 import {useGetEventsQuery} from '../../store/slices/apiSlice';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
+import {useAppSelector} from '../../hooks/useAppSelector';
 import {Calendar, Views} from 'react-big-calendar';
+import {RootState} from '../../store/store';
 import styles from './style.module.css';
-import {getRandomColor} from "../../utils/getRandomColor";
 
 const CalendarComponent: React.FC = () => {
-  const startRange = new Date();
-  const endRange = new Date();
-
-  startRange.setMonth(startRange.getMonth() - 1);
-  endRange.setMonth(endRange.getMonth() + 2);
-
-  const { data } = useGetEventsQuery({ page: 1,  pageSize: 1360 });
+  const filters = useAppSelector((state: RootState) => state.filters);
+  const [page, setPage] = useState(1);
+  const pageSize = 1360;
+  const { data, error, isError, isLoading } = useGetEventsQuery({
+    page,
+    pageSize,
+    sport: filters.sport || undefined,
+    location: filters.location || undefined,
+    participantsCount: filters.participantsCount || undefined,
+  });
   const [events, setEvents] = useState<TCalendarEvent[]>([]);
 
   useEffect(() => {
@@ -29,11 +34,14 @@ const CalendarComponent: React.FC = () => {
       }));
 
       setEvents(mappedEvents);
+    } else {
+      setEvents([]);
     }
   }, [data]);
 
-  const handleSelectEvent = (event: TCalendarEvent) =>
-    alert(`Событие: ${event.title}\nОписание: ${event.desc}`);
+  useEffect(() => {
+    setPage(1);
+  }, [filters.sport, filters.location, filters.participantsCount]);
 
   const handleSelectSlot = (slotInfo: { start: Date; end: Date; action: string; slots: Date[]; }) => {
     const title = window.prompt('Название нового события');
@@ -53,7 +61,9 @@ const CalendarComponent: React.FC = () => {
       setEvents([...events, newEvent]);
     }
   };
-  console.log(getRandomColor());
+
+  const handleSelectEvent = (event: TCalendarEvent) =>
+    alert(`Событие: ${event.title}\nОписание: ${event.desc}`);
 
   const eventStyleGetter = (
     event: TCalendarEvent,
@@ -62,7 +72,7 @@ const CalendarComponent: React.FC = () => {
     isSelected: boolean
   ) => {
     const style = {
-      backgroundColor: isSelected ? getRandomColor() : getRandomColor(),
+      backgroundColor: '#1976d2',
       borderRadius: '0px',
       opacity: 0.8,
       color: 'white',
@@ -72,6 +82,36 @@ const CalendarComponent: React.FC = () => {
 
     return { style };
   };
+
+  if (isError) {
+    const status = error && 'status' in error ? error.status : null;
+
+    return (
+      <Box sx={{ padding: '16px', textAlign: 'center' }}>
+        <Typography variant="h6" color="error">
+          {status === 404 || status === 400
+            ? 'Нет доступных данных.'
+            : 'Ошибка загрузки данных.'}
+        </Typography>
+      </Box>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (!data || data.results.length === 0) {
+    return (
+      <Box sx={{ padding: '16px', textAlign: 'center' }}>
+        <Typography variant="h6">Нет доступных данных.</Typography>
+      </Box>
+    );
+  }
 
   return (
     <div className={styles.container}>

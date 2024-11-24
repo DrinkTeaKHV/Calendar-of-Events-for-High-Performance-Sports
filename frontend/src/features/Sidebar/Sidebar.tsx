@@ -1,18 +1,29 @@
 import React from 'react';
-import {Drawer, List, ListItem, ListSubheader, FormControl, InputLabel, Select, MenuItem, SelectChangeEvent} from '@mui/material';
+import {
+  List,
+  Drawer,
+  Select,
+  MenuItem,
+  ListItem,
+  InputLabel,
+  FormControl,
+  ListSubheader,
+  CircularProgress,
+  SelectChangeEvent,
+} from '@mui/material';
 import {setSport, setLocation, setParticipantsCount} from '../../store/slices/filtersSlice';
 import {useGetFiltersQuery} from '../../store/slices/apiSlice';
-import {useSelector, useDispatch} from 'react-redux';
+import {useAppSelector} from '../../hooks/useAppSelector';
+import {useAppDispatch} from '../../hooks/useAppDispatch';
 import {RootState} from '../../store/store';
 
 const Sidebar: React.FC = () => {
-  const dispatch = useDispatch();
-  const { data: filtersData } = useGetFiltersQuery();
+  const { data: filtersData, isLoading } = useGetFiltersQuery();
+  const dispatch = useAppDispatch();
   const participantOptions = filtersData?.participants_counts || [];
   const sportsOptions = filtersData?.sports || [];
   const locationsOptions = filtersData?.locations || [];
-
-  const filters = useSelector((state: RootState) => state.filters);
+  const filters = useAppSelector((state: RootState) => state.filters);
 
   const handleSportChange = (event: SelectChangeEvent<string>) => {
     const value = event.target.value;
@@ -29,6 +40,28 @@ const Sidebar: React.FC = () => {
     const numericValue = value === '' ? null : Number(value);
     dispatch(setParticipantsCount(numericValue));
   };
+
+  if (isLoading) {
+    return (
+      <Drawer
+        variant="permanent"
+        sx={{
+          width: 240,
+          flexShrink: 0,
+          '& .MuiDrawer-paper': {
+            width: 240,
+            boxSizing: 'border-box',
+            marginTop: '64px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          },
+        }}
+      >
+        <CircularProgress />
+      </Drawer>
+    );
+  }
 
   return (
     <Drawer
@@ -59,12 +92,9 @@ const Sidebar: React.FC = () => {
                 },
               }}
             >
-              <MenuItem value="">
-                <em>None</em>
-              </MenuItem>
-              {sportsOptions.map((sport, index) => (
+              {sportsOptions.map((sport) => (
                 <MenuItem
-                  key={index}
+                  key={sport}
                   value={sport}
                   style={{ fontSize: '12px' }}
                 >
@@ -89,12 +119,9 @@ const Sidebar: React.FC = () => {
                 },
               }}
             >
-              <MenuItem value="">
-                <em>None</em>
-              </MenuItem>
-              {locationsOptions.map((location, index) => (
+              {locationsOptions.map((location) => (
                 <MenuItem
-                  key={index}
+                  key={location}
                   value={location}
                   style={{ fontSize: '12px' }}
                 >
@@ -106,9 +133,7 @@ const Sidebar: React.FC = () => {
         </ListItem>
         <ListItem>
           <FormControl fullWidth>
-            <InputLabel id="participants-label">
-              Количество участников
-            </InputLabel>
+            <InputLabel id="participants-label">Количество участников</InputLabel>
             <Select
               labelId="participants-label"
               value={filters.participantsCount !== null ? String(filters.participantsCount) : ''}
@@ -121,12 +146,9 @@ const Sidebar: React.FC = () => {
                 },
               }}
             >
-              <MenuItem value="">
-                <em>None</em>
-              </MenuItem>
-              {participantOptions.map((option, index) => (
+              {participantOptions.map((option) => (
                 <MenuItem
-                  key={index}
+                  key={option.participants_count}
                   value={String(option.participants_count)}
                   style={{ fontSize: '12px' }}
                 >

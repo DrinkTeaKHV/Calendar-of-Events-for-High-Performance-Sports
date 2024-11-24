@@ -1,7 +1,5 @@
-// src/store/slices/filtersSlice.ts
-
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { TFiltersState } from "../../definitions/types/TFiltersState";
+import {createSlice, PayloadAction} from '@reduxjs/toolkit';
+import {TFiltersState} from "../../definitions/types/TFiltersState";
 
 const initialState: TFiltersState = {
   sport: null,
@@ -36,6 +34,11 @@ const filtersSlice = createSlice({
     resetParticipantsCount(state) {
       state.participantsCount = null;
     },
+    resetAllFilters(state) {
+      state.sport = null;
+      state.location = null;
+      state.participantsCount = null;
+    },
   },
 });
 
@@ -47,6 +50,7 @@ export const {
   resetSport,
   resetLocation,
   resetParticipantsCount,
+  resetAllFilters,
 } = filtersSlice.actions;
 
 export default filtersSlice.reducer;
