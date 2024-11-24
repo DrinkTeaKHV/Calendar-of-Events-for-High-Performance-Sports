@@ -20,7 +20,7 @@ import {
   resetGender,
   resetQ
 } from '../../store/slices/filtersSlice';
-import {useGetEventsQuery} from '../../store/slices/apiSlice';
+import {useGetEventsQuery, useAddToFavoritesMutation} from '../../store/slices/apiSlice';
 import {useAppSelector} from '../../hooks/useAppSelector';
 import {useAppDispatch} from '../../hooks/useAppDispatch';
 import {formatDate} from '../../utils/formatDate';
@@ -41,6 +41,8 @@ const Events: React.FC = () => {
   const pageSize = 10;
   const dispatch = useAppDispatch();
   const filters = useAppSelector((state: RootState) => state.filters);
+  const [selectedEvents, setSelectedEvents] = useState<number[]>([]);
+  const [addToFavorites] = useAddToFavoritesMutation();
   const { data, error, isError, isLoading } = useGetEventsQuery({
     page,
     pageSize,
@@ -78,6 +80,20 @@ const Events: React.FC = () => {
   if (!data || data.results.length === 0) {
     return <Typography variant="h6" align="center">Нет доступных данных.</Typography>;
   }
+
+  const handleCheckboxChange = async (eventId: number, isChecked: boolean) => {
+    if (isChecked) {
+      try {
+        await addToFavorites({ event: eventId }).unwrap();
+        setSelectedEvents((prev) => [...prev, eventId]);
+      } catch (error) {
+        console.error('Ошибка при добавлении в избранное:', error);
+      }
+    } else {
+      // Удаление из списка выбранных (опционально: можно реализовать удаление из избранного)
+      setSelectedEvents((prev) => prev.filter((id) => id !== eventId));
+    }
+  };
 
   const handlePageChange = (
     event: React.ChangeEvent<unknown>,
@@ -161,7 +177,9 @@ const Events: React.FC = () => {
             {data.results.map((event) => (
               <TableRow key={event.id}>
                 <TableCell padding="checkbox">
-                  <Checkbox />
+                  <Checkbox checked={event.is_favorite}
+                            onChange={(e) => handleCheckboxChange(event.id, e.target.checked)}
+                  />
                 </TableCell>
                 <TableCell sx={{ fontSize: '0.65rem' }}>
                   {event.sm_number}

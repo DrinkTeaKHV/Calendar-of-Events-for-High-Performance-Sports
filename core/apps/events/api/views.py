@@ -7,15 +7,16 @@ from drf_yasg.utils import swagger_auto_schema
 from django_filters import rest_framework as filters
 from django_filters.rest_framework import DjangoFilterBackend
 from elasticsearch_dsl import Q
-from rest_framework import viewsets
+from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework import status
 
 from ..documents import EventDocument
-from ..models import Event, Sport, GENDER_CHOICES
-from .serializers import EventSerializer, SportSerializer
+from ..models import Event, Sport, GENDER_CHOICES, FavoriteEvent
+from .serializers import EventSerializer, SportSerializer, FavoriteEventSerializer
 
 
 class EventPagination(PageNumberPagination):
@@ -213,7 +214,7 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
             "sports": list(sports),
             "competition_types": list(competition_types),
             "locations": list(locations),
-            "genders": list(genders),
+            "gender": list(genders),
             "participants_counts": list(participants_counts),
         })
 
@@ -227,3 +228,50 @@ class SportListAPIView(APIView):
         sports = Sport.objects.all().order_by('name')  # Получение всех видов спорта, сортировка по имени
         serializer = SportSerializer(sports, many=True)
         return Response(serializer.data)
+
+
+class FavoriteEventViewSet(viewsets.ModelViewSet):
+    """
+    API для управления избранными мероприятиями
+    """
+    serializer_class = FavoriteEventSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        Возвращает избранные мероприятия текущего пользователя
+        """
+        return FavoriteEvent.objects.filter(user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        """
+        Переопределяем метод create, чтобы не создавать дублирующиеся записи.
+        """
+        user = request.user
+        event_id = request.data.get('event')
+
+        if not event_id:
+            return Response(
+                {"detail": "Поле 'event' обязательно."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            event = Event.objects.get(id=event_id)
+        except Event.DoesNotExist:
+            return Response(
+                {"detail": "Мероприятие с таким ID не найдено."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Проверяем, есть ли уже это мероприятие в избранном
+        favorite, created = FavoriteEvent.objects.get_or_create(user=user, event=event)
+
+        if not created:
+            return Response(
+                {"detail": "Это мероприятие уже добавлено в избранное."},
+                status=status.HTTP_200_OK
+            )
+
+        serializer = self.get_serializer(favorite)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

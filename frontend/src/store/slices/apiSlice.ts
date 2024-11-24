@@ -39,6 +39,14 @@ export const apiSlice = createApi({
         body: credentials,
       }),
     }),
+    addToFavorites: builder.mutation<void, { event: number }>({
+      query: (body) => ({
+        url: '/favorite-events/',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Events'], // Для обновления списка, если нужно
+    }),
     getEvents: builder.query<TEventsResponse, TEventsParams>({
       query: ({ page, pageSize, sport, location, participantsCount, competitionType, gender, q }) => { // Include 'q'
         const params = new URLSearchParams();
@@ -92,5 +100,6 @@ export const {
   useGetNotificationSettingsQuery,
   useGetSportsQuery,
   useUpdateNotificationSettingsMutation,
+  useAddToFavoritesMutation,
   useGetFiltersQuery,
 } = apiSlice;

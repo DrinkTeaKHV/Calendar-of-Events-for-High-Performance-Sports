@@ -15,6 +15,7 @@ export type Event = {
   year: number;
   min_age: number;
   max_age: number;
+  is_favorite: boolean;
 }
 
 export type PaginatedResponse<T> = {

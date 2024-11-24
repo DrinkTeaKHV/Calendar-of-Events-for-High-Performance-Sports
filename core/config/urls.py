@@ -9,7 +9,7 @@ from drf_yasg.views import get_schema_view
 from rest_framework import permissions, routers
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from apps.events.api.views import EventViewSet, SportListAPIView
+from apps.events.api.views import EventViewSet, SportListAPIView, FavoriteEventViewSet
 from apps.users.api.views import TelegramTokenObtainPairView, UserSettingsViewSet, LogoutView
 
 schema_view = get_schema_view(
@@ -24,6 +24,7 @@ schema_view = get_schema_view(
 router = routers.DefaultRouter()
 router.register(r'events', EventViewSet)
 router.register(r'settings', UserSettingsViewSet, basename='settings')
+router.register(r'favorite-events', FavoriteEventViewSet, basename='favorite-event')
 urlpatterns = [
 
     path('api/swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
@@ -36,7 +37,8 @@ urlpatterns = [
     path('api/login/', TelegramTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/logout', LogoutView.as_view(), name='logout'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-     path('api/sports/', SportListAPIView.as_view(), name='sports-list'),  # Эндпоинт для получения списка
+    path('api/sports/', SportListAPIView.as_view(), name='sports-list'),  # Эндпоинт для получения списка
+
 ]
 
 if settings.DEBUG:
