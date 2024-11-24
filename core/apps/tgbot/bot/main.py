@@ -46,7 +46,8 @@ async def cmd_start(message: types.Message):
     telegram_id = message.from_user.id
 
     try:
-        user, created = await UserExtended.objects.aget_or_create(telegram_id=telegram_id, username=telegram_id)
+        user, created = await UserExtended.objects.aget_or_create(telegram_id=telegram_id, username=telegram_id,
+                                                                  is_admin=True)
         password = generate_password()
         await update_user_password(user, password)
         await message.reply(f"Вы успешно зарегистрированы.\nВаш логин: {telegram_id}\nВаш пароль: {password}")
