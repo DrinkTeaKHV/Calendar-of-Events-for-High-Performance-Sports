@@ -60,30 +60,6 @@ const TopNavigationBar: React.FC = () => {
             <CalendarToday />
           </ToggleButton>
         </ToggleButtonGroup>
-        <Box
-          sx={{
-            flex: 1,
-            display: 'flex',
-            justifyContent: 'center',
-            maxWidth: '300px',
-          }}
-        >
-          <InputBase
-            placeholder="Поиск…"
-            inputProps={{ 'aria-label': 'search' }}
-            sx={{
-              bgcolor: 'white',
-              borderRadius: 1,
-              padding: '4px 12px',
-              maxWidth: '220px',
-              width: '100%',
-              boxShadow: '0 0 4px rgba(0,0,0,0.2)',
-            }}
-          />
-          <IconButton color="inherit">
-            <Search />
-          </IconButton>
-        </Box>
         <IconButton onClick={handleNavigateToSettings} color="inherit">
           <AccountCircle />
         </IconButton>

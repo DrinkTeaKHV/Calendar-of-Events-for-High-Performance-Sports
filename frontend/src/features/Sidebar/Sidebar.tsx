@@ -32,7 +32,7 @@ const Sidebar: React.FC = () => {
   const sportsOptions = filtersData?.sports || [];
   const locationsOptions = filtersData?.locations || [];
   const competitionTypesOptions = filtersData?.competition_types || [];
-  const gendersOptions = filtersData?.genders || [];
+  const genderOptions = filtersData?.gender || [];
   const filters = useAppSelector((state: RootState) => state.filters);
 
   const handleSportChange = (event: SelectChangeEvent<string>) => {
@@ -225,7 +225,7 @@ const Sidebar: React.FC = () => {
                 },
               }}
             >
-              {gendersOptions.map((gender) => (
+              {genderOptions.map((gender) => (
                 <MenuItem
                   key={gender}
                   value={gender}
