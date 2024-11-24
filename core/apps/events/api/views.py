@@ -4,6 +4,8 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from django_filters import rest_framework as filters
+from django_filters.rest_framework import DjangoFilterBackend
 from elasticsearch_dsl import Q
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -12,7 +14,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ..documents import EventDocument
-from ..models import Event, Sport
+from ..models import Event, Sport, GENDER_CHOICES
 from .serializers import EventSerializer, SportSerializer
 
 
@@ -20,6 +22,30 @@ class EventPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 100
+
+
+class EventFilter(filters.FilterSet):
+    sport_type = filters.CharFilter(field_name='sport__name', lookup_expr='iexact')
+    competition_type = filters.CharFilter(field_name='competition_type__name', lookup_expr='iexact')
+    location = filters.CharFilter(lookup_expr='iexact')
+    gender = filters.ChoiceFilter(choices=GENDER_CHOICES)
+    min_participants_count = filters.NumberFilter(field_name='participants_count', lookup_expr='gte')
+    max_participants_count = filters.NumberFilter(field_name='participants_count', lookup_expr='lte')
+    start_date = filters.DateFilter(field_name='start_date', lookup_expr='gte')
+    end_date = filters.DateFilter(field_name='end_date', lookup_expr='lte')
+
+    class Meta:
+        model = Event
+        fields = [
+            'sport_type',
+            'competition_type',
+            'location',
+            'gender',
+            'min_participants_count',
+            'max_participants_count',
+            'start_date',
+            'end_date',
+        ]
 
 
 class EventViewSet(viewsets.ReadOnlyModelViewSet):
@@ -31,6 +57,8 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = EventPagination
     ordering_fields = ['start_date', 'end_date', 'participants_count']
     ordering = ['start_date']
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = EventFilter
 
     def _build_query(self, params):
         """
@@ -49,51 +77,6 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
                     fuzziness='AUTO',
                 )
             )
-
-        # Поиск по отдельным полям
-        exact_fields = {
-            'sport_type': 'sport.name',
-            'competition_type': 'competition_type.name',
-            'location': 'location',
-            'gender': 'gender',
-        }
-
-        for param, field in exact_fields.items():
-            value = params.get(param)
-            if value:
-                must_queries.append(Q('match', **{field: value}))
-
-        # Диапазоны числовых значений
-        participants_range = {}
-        min_count = params.get('min_participants_count')
-        max_count = params.get('max_participants_count')
-
-        if min_count:
-            try:
-                participants_range['gte'] = int(min_count)
-            except ValueError:
-                pass  # Можно добавить логирование ошибки
-        if max_count:
-            try:
-                participants_range['lte'] = int(max_count)
-            except ValueError:
-                pass
-
-        if participants_range:
-            must_queries.append(Q('range', participants_count=participants_range))
-
-        # Диапазон по датам
-        date_range = {}
-        start_date = params.get('start_date')
-        end_date = params.get('end_date')
-
-        if start_date:
-            date_range['gte'] = start_date
-        if end_date:
-            date_range['lte'] = end_date
-
-        if date_range:
-            must_queries.append(Q('range', start_date=date_range))
 
         return must_queries
 
