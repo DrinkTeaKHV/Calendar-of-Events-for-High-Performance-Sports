@@ -15,6 +15,7 @@ DEBUG = os.getenv('DEBUG', True)
 SENTRY_DSN = os.getenv('SENTRY_DSN')
 
 ALLOWED_HOSTS = ["*"]
+CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = ['http://localhost:4200', 'http://localhost:3000', SITE_URL]
 CORS_ALLOWED_ORIGINS = ['http://localhost:4200', 'http://localhost:3000', SITE_URL]
 INSTALLED_APPS = [
@@ -49,6 +50,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'apps.users.middleware.RefreshTokenMiddleware',  # Добавьте здесь
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -152,7 +154,7 @@ CACHE_TTL = 60 * 15  # 15 минут
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'apps.users.authentication.CookieJWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
@@ -160,8 +162,11 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),  # Настрой время жизни токена
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
-    'AUTH_HEADER_TYPES': ('Bearer',),
-    # Другие настройки можно оставить по умолчанию или настроить при необходимости
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'AUTH_COOKIE_SECURE': True,  # Использовать только HTTPS
+    'AUTH_COOKIE_HTTP_ONLY': True,  # Запретить доступ к кукам через JS
+    'AUTH_COOKIE_SAMESITE': 'Lax',  # Защита от CSRF
 }

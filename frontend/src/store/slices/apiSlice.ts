@@ -1,34 +1,39 @@
-import {TAuthCredentials} from "../../definitions/types/TAuthCredentials";
-import {TFiltersResponse} from "../../definitions/types/TFiltersResponse";
-import {TEventsResponse} from "../../definitions/types/TEventsResponse";
-import {createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import {TAuthResponse} from "../../definitions/types/TAuthResponse";
+import { TAuthCredentials } from "../../definitions/types/TAuthCredentials";
+import { TEventsResponse } from "../../definitions/types/TEventsResponse";
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { TAuthResponse } from "../../definitions/types/TAuthResponse";
 import {TEventsParams} from "../../definitions/types/TEventsParams";
+import { TNotificationSettings } from "../../definitions/types/TNotificationSettings";
+import {TFiltersResponse} from "../../definitions/types/TFiltersResponse";
 
 const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
 
 const baseQuery = fetchBaseQuery({
   baseUrl: REACT_APP_API_URL,
-  // Uncomment and modify if you need to set headers
-  // prepareHeaders: (headers) => {
-  //   const token = localStorage.getItem('token');
-  //
-  //   if (token) {
-  //     headers.set('Authorization', `Bearer ${token}`);
-  //   }
-  //
-  //   return headers;
-  // },
+  credentials: 'include', // Для работы с куками
+  prepareHeaders: (headers) => {
+    const token = document.cookie
+        .split('; ')
+        .find((row) => row.startsWith('access_token='))
+        ?.split('=')[1];
+
+    if (token) {
+      headers.set('Authorization', `Bearer ${token}`);
+    }
+
+    return headers;
+  },
 });
 
 export const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery: baseQuery,
-  tagTypes: ['User', 'Events', 'Filters'],
+  tagTypes: ['User', 'Events', 'Filters', 'NotificationSettings'],
   endpoints: (builder) => ({
+    // Аутентификация
     login: builder.mutation<TAuthResponse, TAuthCredentials>({
       query: (credentials) => ({
-        url: '/auth/login/',
+        url: '/login/',
         method: 'POST',
         body: credentials,
       }),
@@ -51,6 +56,20 @@ export const apiSlice = createApi({
       },
       providesTags: ['Events'],
     }),
+    // Получение настроек уведомлений
+    getNotificationSettings: builder.query<TNotificationSettings, void>({
+      query: () => '/settings/notifications/',
+      providesTags: ['NotificationSettings'],
+    }),
+    // Обновление настроек уведомлений
+    updateNotificationSettings: builder.mutation<void, TNotificationSettings>({
+      query: (settings) => ({
+        url: '/settings/notifications/',
+        method: 'PUT',
+        body: settings,
+      }),
+      invalidatesTags: ['NotificationSettings'],
+    }),
     getFilters: builder.query<TFiltersResponse, void>({
       query: () => `/events/filter-options/`,
       providesTags: ['Filters'],
@@ -61,5 +80,7 @@ export const apiSlice = createApi({
 export const {
   useLoginMutation,
   useGetEventsQuery,
+  useGetNotificationSettingsQuery,
+  useUpdateNotificationSettingsMutation,
   useGetFiltersQuery,
 } = apiSlice;
