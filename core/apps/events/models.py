@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.functional import cached_property
 
 from apps.users.models import UserExtended
 
@@ -122,6 +123,31 @@ class Event(models.Model):
     class Meta:
         verbose_name = 'Мероприятие'
         verbose_name_plural = 'Мероприятия'
+
+    @cached_property
+    def original(self):
+        """
+        Возвращает состояние объекта до сохранения.
+        """
+        if not self.pk:
+            return None
+        return Event.objects.get(pk=self.pk)
+
+    def get_changed_fields(self):
+        """
+        Возвращает список измененных полей.
+        """
+        if not self.original:
+            return []
+        changed_fields = []
+        for field in self._meta.fields:
+            field_name = field.name
+            original_value = getattr(self.original, field_name, None)
+            current_value = getattr(self, field_name, None)
+            if original_value != current_value:
+                changed_fields.append(field_name)
+        return changed_fields
+
 
     def __str__(self):
         return f"{self.name} ({self.start_date})"

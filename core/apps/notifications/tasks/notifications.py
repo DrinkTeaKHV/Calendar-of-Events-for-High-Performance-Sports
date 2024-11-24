@@ -30,11 +30,11 @@ def notify_about_new_event(event_id):
             f"Вид спорта: {event.sport.name}"
         )
 
-        for user in users:
+        for user in users.filter(receive_new_event_notifications=True):
             send_notification(
                 user=user,
                 event=event,
-                notification_type="NEW_EVENT",
+                notification_type="receive_new_event_notifications",
                 message=message,
             )
     except Event.DoesNotExist:
@@ -63,7 +63,7 @@ def notify_about_favorite_event_changes(event_id):
             send_notification(
                 user=user,
                 event=event,
-                notification_type="EVENT_UPDATE",
+                notification_type="receive_event_update_notifications",
                 message=message,
             )
     except Event.DoesNotExist:
@@ -89,7 +89,7 @@ def send_daily_event_reminders():
         user = favorite.user
         send_notification(
             user=user,
-            event=favorite.favoriteevent,
-            notification_type="REMINDER",
+            event=favorite.event,
+            notification_type="receive_event_reminders",
             message=message,
         )

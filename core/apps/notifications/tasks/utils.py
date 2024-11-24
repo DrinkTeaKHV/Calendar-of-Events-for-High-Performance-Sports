@@ -9,7 +9,7 @@ def send_notification(user, event, notification_type, message):
     telegram_sent = False
 
     # Отправка Telegram
-    if user.telegram_id and getattr(user, f"receive_{notification_type.lower()}_notifications", False):
+    if user.telegram_id and getattr(user, notification_type, False):
         telegram_sent = sync_send_message(user.telegram_id, message)
 
     # Сохранение уведомления

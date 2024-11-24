@@ -6,15 +6,15 @@ from apps.users.models import UserExtended
 
 class Notification(models.Model):
     NOTIFICATION_TYPES = (
-        ('NEW_EVENT', 'Новое мероприятие'),
-        ('EVENT_UPDATE', 'Обновление мероприятия'),
-        ('REMINDER', 'Напоминание'),
+        ('receive_new_event_notifications', 'Новое мероприятие'),
+        ('receive_event_update_notifications', 'Обновление мероприятия'),
+        ('receive_event_reminders', 'Напоминание'),
     )
 
     user = models.ForeignKey(UserExtended, on_delete=models.CASCADE, related_name='notifications',
                              verbose_name='Пользователь')
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='notifications', verbose_name='Мероприятие')
-    notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES, verbose_name='Тип уведомления')
+    notification_type = models.CharField(max_length=124, choices=NOTIFICATION_TYPES, verbose_name='Тип уведомления')
     message = models.TextField(verbose_name='Сообщение')
     telegram_sent = models.BooleanField(default=False, verbose_name='Отправлено в Telegram')
     email_sent = models.BooleanField(default=False, verbose_name='Отправлено на Email')

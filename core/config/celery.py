@@ -14,7 +14,7 @@ app.autodiscover_tasks()
 
 app.conf.beat_schedule = {
     "send_event_reminders_every_5_minutes": {
-        "task": "apps.notifications.tasks.send_daily_event_reminders",
+        "task": "apps.notifications.tasks.notifications.send_daily_event_reminders",
         "schedule": crontab(minute="*/5"),  # Каждые 5 минут
     },
 }
