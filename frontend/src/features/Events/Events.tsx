@@ -51,6 +51,7 @@ const Events: React.FC = () => {
     participantsCount: filters.participantsCount,
     competitionType: filters.competitionType,
     gender: filters.gender,
+    q: filters.q,
   });
 
   const totalPages = data ? Math.ceil(data.count / pageSize) : 1;
