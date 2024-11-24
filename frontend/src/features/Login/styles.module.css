@@ -1,1 +1,33 @@
-.container {}
+/* styles.module.css */
+
+.formContainer {
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    max-width: 80vw;
+    gap: 16px;
+}
+
+.textField {
+    width: 80vw!important;
+    max-width: 650px;
+}
+
+.buttonGroup {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.telegramButton {
+    font-weight: 600!important;
+}
+
+.errorAlert {
+    margin-top: 16px;
+}

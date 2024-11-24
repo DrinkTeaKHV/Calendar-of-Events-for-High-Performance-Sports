@@ -1,83 +1,123 @@
-import React, {useState, ChangeEvent, FormEvent} from 'react';
-import {setCredentials, setLoading, setError} from '../../store/slices/authSlice';
-import {TAuthCredentials} from '../../definitions/types/TAuthCredentials';
-import {useLoginMutation} from '../../store/slices/apiSlice';
-import {useAppDispatch} from '../../hooks/useAppDispatch';
-import {useNavigate} from 'react-router-dom';
+import React, { useState, ChangeEvent, FormEvent } from 'react';
+import { setCredentials, setLoading, setError } from '../../store/slices/authSlice';
+import { TAuthCredentials } from '../../definitions/types/TAuthCredentials';
+import { useLoginMutation } from '../../store/slices/apiSlice';
+import { useAppDispatch } from '../../hooks/useAppDispatch';
+import { useNavigate } from 'react-router-dom';
+import { Box, Button, Checkbox, FormControlLabel, TextField, Alert } from '@mui/material';
 import styles from './styles.module.css';
 
 const Login: React.FC = () => {
-  const [credentials, setCredentialsState] = useState<TAuthCredentials>({ email: '', password: '' });
-  const [login, { isLoading, isError, error }] = useLoginMutation();
-  const dispatch = useAppDispatch();
-  const navigate = useNavigate();
+    const [credentials, setCredentialsState] = useState<TAuthCredentials>({ username: 'telegram_id', telegram_id: '', password: '' });
+    const [acceptedTerms, setAcceptedTerms] = useState(false);
+    const [login, { isLoading, isError, error }] = useLoginMutation();
+    const dispatch = useAppDispatch();
+    const navigate = useNavigate();
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+    const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
 
-    setCredentialsState((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+        setCredentialsState((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+    };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+    const handleCheckboxChange = (e: ChangeEvent<HTMLInputElement>) => {
+        setAcceptedTerms(e.target.checked);
+    };
 
-    dispatch(setLoading());
+    const handleTelegramRegistration = () => {
+        // Логика для редиректа на регистрацию через Telegram
+        window.location.href = 'https://t.me/true_fsp_bot?start=register';
+    };
 
-    try {
-      const response = await login(credentials).unwrap();
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
 
-      dispatch(setCredentials(response));
+        if (!acceptedTerms) {
+            alert('Please accept the Terms and Conditions to continue.');
+            return;
+        }
 
-      navigate('/');
-    } catch (err: any) {
-      const errorMessage = err?.data?.message || 'An error occurred during login.';
+        dispatch(setLoading());
 
-      dispatch(setError(errorMessage));
+        try {
+            const response = await login(credentials).unwrap();
 
-      console.error('Failed to login:', err);
-    }
-  };
+            dispatch(setCredentials(response));
 
-  return (
-    <form className={styles.container} onSubmit={handleSubmit}>
-      <h2>Login</h2>
-      <div className={styles.inputGroup}>
-        <label htmlFor="email">Email:</label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          value={credentials.email}
-          onChange={handleChange}
-          required
-          placeholder="Enter your email"
-        />
-      </div>
-      <div className={styles.inputGroup}>
-        <label htmlFor="password">Password:</label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          value={credentials.password}
-          onChange={handleChange}
-          required
-          placeholder="Enter your password"
-        />
-      </div>
-      <button type="submit" disabled={isLoading} className={styles.submitButton}>
-        {isLoading ? 'Logging in...' : 'Login'}
-      </button>
-      {isError && (
-        <p className={styles.error}>
-          {(error as any)?.data?.message || 'An error occurred during login.'}
-        </p>
-      )}
-    </form>
-  );
+            navigate('/');
+        } catch (err: any) {
+            const errorMessage = err?.data?.message || 'An error occurred during login.';
+
+            dispatch(setError(errorMessage));
+
+            console.error('Failed to login:', err);
+        }
+    };
+
+    return (
+        <Box className={styles.formContainer}>
+            <form onSubmit={handleSubmit} className={styles.form}>
+                <TextField
+                    className={styles.textField}
+                    variant="outlined"
+                    size="medium"
+                    label="Telegram ID"
+                    type="text"
+                    name="telegram_id"
+                    value={credentials.telegram_id}
+                    onChange={handleChange}
+                    required
+                    fullWidth
+                />
+                <TextField
+                    className={styles.textField}
+                    variant="outlined"
+                    size="medium"
+                    label="Password"
+                    type="password"
+                    name="password"
+                    value={credentials.password}
+                    onChange={handleChange}
+                    required
+                    fullWidth
+                />
+                <FormControlLabel
+                    control={<Checkbox checked={acceptedTerms} onChange={handleCheckboxChange} />}
+                    label="I accept the Terms and Conditions"
+                />
+                <Box className={styles.buttonGroup}>
+                    <Button
+                        size="large"
+                        variant="contained"
+                        color="inherit"
+                        onClick={handleTelegramRegistration}
+                        fullWidth
+                        className={styles.telegramButton}
+                    >
+                        Регистрация через Telegram
+                    </Button>
+                    <Button
+                        size="large"
+                        variant="contained"
+                        type="submit"
+                        color="primary"
+                        disabled={isLoading || !acceptedTerms}
+                        fullWidth
+                    >
+                        Войти
+                    </Button>
+                </Box>
+                {isError && (
+                    <Alert severity="error" className={styles.errorAlert}>
+                        {(error as any)?.data?.message || 'An error occurred during login.'}
+                    </Alert>
+                )}
+            </form>
+        </Box>
+    );
 };
 
 export default Login;
