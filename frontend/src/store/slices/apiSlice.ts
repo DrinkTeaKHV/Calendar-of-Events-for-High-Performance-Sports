@@ -2,8 +2,9 @@ import { TAuthCredentials } from "../../definitions/types/TAuthCredentials";
 import { TEventsResponse } from "../../definitions/types/TEventsResponse";
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { TAuthResponse } from "../../definitions/types/TAuthResponse";
+import {TEventsParams} from "../../definitions/types/TEventsParams";
 import { TNotificationSettings } from "../../definitions/types/TNotificationSettings";
-import {TFilterOptionsResponse} from "../../definitions/types/TFilterResponse";
+import {TFiltersResponse} from "../../definitions/types/TFiltersResponse";
 
 const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
 
@@ -27,8 +28,9 @@ const baseQuery = fetchBaseQuery({
 export const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery: baseQuery,
-  tagTypes: ['User', 'Events', 'NotificationSettings', 'filters'],
+  tagTypes: ['User', 'Events', 'Filters', 'NotificationSettings'],
   endpoints: (builder) => ({
+    // Аутентификация
     login: builder.mutation<TAuthResponse, TAuthCredentials>({
       query: (credentials) => ({
         url: '/login/',
@@ -36,14 +38,30 @@ export const apiSlice = createApi({
         body: credentials,
       }),
     }),
-    getEvents: builder.query<TEventsResponse, void>({
-      query: () => '/events/',
+    getEvents: builder.query<TEventsResponse, TEventsParams>({
+      query: ({ page, pageSize, sport, location, participantsCount }) => {
+        const params = new URLSearchParams();
+
+        params.append('page', page.toString());
+        params.append('pageSize', pageSize.toString());
+
+        if (sport) params.append('sport', sport);
+        if (location) params.append('location', location);
+        if (participantsCount) params.append('participantsCount', participantsCount.toString());
+
+        return {
+          url: `/events?${params.toString()}`,
+          method: 'GET',
+        };
+      },
       providesTags: ['Events'],
     }),
-    getFilters: builder.query<TFilterOptionsResponse, void>({
-      query: () => '/events/filter-options/',
-      providesTags: ['filters'],
+    // Получение настроек уведомлений
+    getNotificationSettings: builder.query<TNotificationSettings, void>({
+      query: () => '/settings/notifications/',
+      providesTags: ['NotificationSettings'],
     }),
+    // Обновление настроек уведомлений
     updateNotificationSettings: builder.mutation<void, TNotificationSettings>({
       query: (settings) => ({
         url: '/settings/notifications/',
@@ -52,9 +70,9 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ['NotificationSettings'],
     }),
-    getNotificationSettings: builder.query<TNotificationSettings, void>({
-      query: () => '/settings/notifications/',
-      providesTags: ['NotificationSettings'],
+    getFilters: builder.query<TFiltersResponse, void>({
+      query: () => `/events/filter-options/`,
+      providesTags: ['Filters'],
     }),
   }),
 });
@@ -62,7 +80,7 @@ export const apiSlice = createApi({
 export const {
   useLoginMutation,
   useGetEventsQuery,
-  useGetFiltersQuery,
-  useUpdateNotificationSettingsMutation,
   useGetNotificationSettingsQuery,
+  useUpdateNotificationSettingsMutation,
+  useGetFiltersQuery,
 } = apiSlice;
