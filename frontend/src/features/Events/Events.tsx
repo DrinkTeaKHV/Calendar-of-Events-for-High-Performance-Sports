@@ -12,7 +12,14 @@ import {
   TableContainer,
   CircularProgress,
 } from '@mui/material';
-import {resetSport, resetLocation, resetParticipantsCount, resetCompetitionType, resetGender} from '../../store/slices/filtersSlice'; // Import new reset actions
+import {
+  resetSport,
+  resetLocation,
+  resetParticipantsCount,
+  resetCompetitionType,
+  resetGender,
+  resetQ
+} from '../../store/slices/filtersSlice'; // Import new reset actions
 import {useGetEventsQuery} from '../../store/slices/apiSlice';
 import {useAppSelector} from '../../hooks/useAppSelector';
 import {useAppDispatch} from '../../hooks/useAppDispatch';
@@ -48,7 +55,7 @@ const Events: React.FC = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [filters.sport, filters.location, filters.participantsCount, filters.competitionType, filters.gender]); // Include new filters
+  }, [filters.sport, filters.location, filters.participantsCount, filters.competitionType, filters.gender, filters.q]);
 
   if (isLoading) {
     return (
@@ -98,6 +105,9 @@ const Events: React.FC = () => {
       case 'gender':
         dispatch(resetGender());
         break;
+      case 'q':
+        dispatch(resetQ());
+        break;
       default:
         break;
     }
@@ -114,6 +124,7 @@ const Events: React.FC = () => {
     },
     { type: 'competitionType', label: filters.competitionType },
     { type: 'gender', label: filters.gender },
+    { type: 'q', label: filters.q },
   ].filter((filter) => filter.label);
 
   return (

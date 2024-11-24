@@ -4,4 +4,5 @@ export type TFiltersState = {
   participantsCount: number | null;
   competitionType: string | null;
   gender: string | null;
+  q: string | null;
 }

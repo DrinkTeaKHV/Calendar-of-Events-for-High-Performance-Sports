@@ -5,17 +5,25 @@ import {
   Select,
   MenuItem,
   ListItem,
+  TextField,
   InputLabel,
   FormControl,
   ListSubheader,
   CircularProgress,
   SelectChangeEvent,
 } from '@mui/material';
-import {setSport, setLocation, setParticipantsCount, setCompetitionType, setGender} from '../../store/slices/filtersSlice'; // Import new actions
-import {useGetFiltersQuery} from '../../store/slices/apiSlice';
-import {useAppSelector} from '../../hooks/useAppSelector';
-import {useAppDispatch} from '../../hooks/useAppDispatch';
-import {RootState} from '../../store/store';
+import {
+  setQ,
+  setSport,
+  setGender,
+  setLocation,
+  setParticipantsCount,
+  setCompetitionType,
+} from '../../store/slices/filtersSlice';
+import { useGetFiltersQuery } from '../../store/slices/apiSlice';
+import { useAppSelector } from '../../hooks/useAppSelector';
+import { useAppDispatch } from '../../hooks/useAppDispatch';
+import { RootState } from '../../store/store';
 
 const Sidebar: React.FC = () => {
   const { data: filtersData, isLoading } = useGetFiltersQuery();
@@ -43,14 +51,19 @@ const Sidebar: React.FC = () => {
     dispatch(setParticipantsCount(numericValue));
   };
 
-  const handleCompetitionTypeChange = (event: SelectChangeEvent<string>) => { // New handler
+  const handleCompetitionTypeChange = (event: SelectChangeEvent<string>) => {
     const value = event.target.value;
     dispatch(setCompetitionType(value === '' ? null : value));
   };
 
-  const handleGenderChange = (event: SelectChangeEvent<string>) => { // New handler
+  const handleGenderChange = (event: SelectChangeEvent<string>) => {
     const value = event.target.value;
     dispatch(setGender(value === '' ? null : value));
+  };
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => { // New handler for search input
+    const value = event.target.value;
+    dispatch(setQ(value === '' ? null : value));
   };
 
   if (isLoading) {
@@ -197,7 +210,6 @@ const Sidebar: React.FC = () => {
             </Select>
           </FormControl>
         </ListItem>
-        {/* New Filter: Пол */}
         <ListItem>
           <FormControl fullWidth>
             <InputLabel id="gender-label">Пол</InputLabel>
@@ -223,6 +235,18 @@ const Sidebar: React.FC = () => {
                 </MenuItem>
               ))}
             </Select>
+          </FormControl>
+        </ListItem>
+        <ListItem>
+          <FormControl fullWidth>
+            <TextField
+              label="Поиск"
+              variant="outlined"
+              value={filters.q || ''}
+              onChange={handleSearchChange}
+              size="small"
+              sx={{ mt: 2 }}
+            />
           </FormControl>
         </ListItem>
       </List>
