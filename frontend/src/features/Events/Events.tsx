@@ -1,38 +1,73 @@
-import React, {useState} from 'react';
-import {Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Checkbox, Pagination, Chip,} from '@mui/material';
-import {resetSport, resetLocation, resetParticipantsCount} from '../../store/slices/filtersSlice';
+import React, {useState, useEffect} from 'react';
+import {
+  Chip,
+  Table,
+  TableRow,
+  Checkbox,
+  TableBody,
+  TableHead,
+  TableCell,
+  Pagination,
+  Typography,
+  TableContainer,
+  CircularProgress,
+} from '@mui/material';
+import {resetSport, resetLocation, resetParticipantsCount } from '../../store/slices/filtersSlice';
 import {useGetEventsQuery} from '../../store/slices/apiSlice';
-import {useSelector, useDispatch} from 'react-redux';
+import {useAppSelector} from '../../hooks/useAppSelector';
+import {useAppDispatch} from '../../hooks/useAppDispatch';
 import {formatDate} from '../../utils/formatDate';
 import {RootState} from '../../store/store';
 
 const Events: React.FC = () => {
-  const headers = [ '№ СМ', 'Вид спорта', 'Место проведения', 'Пол', 'Тип соревнования', 'Начало', 'Окончание',];
+  const headers = [
+    '№ СМ',
+    'Вид спорта',
+    'Место проведения',
+    'Кол. участников',
+    'Пол',
+    'Тип соревнования',
+    'Начало',
+    'Окончание',
+  ];
   const [page, setPage] = useState(1);
   const pageSize = 10;
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
-  const filters = useSelector((state: RootState) => state.filters);
-  const { data, error, isError } = useGetEventsQuery({ page, pageSize, ...filters,});
+  const filters = useAppSelector((state: RootState) => state.filters);
+
+  // Logging current filters for debugging
+  useEffect(() => {
+    console.log('Current Filters:', filters);
+  }, [filters]);
+
+  const { data, error, isError, isLoading } = useGetEventsQuery({ page, pageSize, ...filters });
   const totalPages = data ? Math.ceil(data.count / pageSize) : 1;
+
+  useEffect(() => {
+    setPage(1);
+  }, [filters.sport, filters.location, filters.participantsCount]);
+
+  if (isLoading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+        <CircularProgress />
+      </div>
+    );
+  }
 
   if (isError) {
     const status = error && 'status' in error ? error.status : null;
 
     if (status === 404 || status === 400) {
-      if (page > 1) {
-        setPage(1);
-        return null;
-      }
-
-      return <div>No data available.</div>;
+      return <Typography variant="h6" align="center">Нет доступных данных.</Typography>;
     } else {
-      return <div>Error loading data.</div>;
+      return <Typography variant="h6" align="center">Ошибка загрузки данных.</Typography>;
     }
   }
 
   if (!data || data.results.length === 0) {
-    return <div>No data available.</div>;
+    return <Typography variant="h6" align="center">Нет доступных данных.</Typography>;
   }
 
   const handlePageChange = (
@@ -115,6 +150,9 @@ const Events: React.FC = () => {
                 </TableCell>
                 <TableCell sx={{ fontSize: '0.65rem' }}>
                   {event.location}
+                </TableCell>
+                <TableCell sx={{ fontSize: '0.65rem' }}>
+                  {event.participants_count}
                 </TableCell>
                 <TableCell sx={{ fontSize: '0.65rem' }}>
                   {event.gender}

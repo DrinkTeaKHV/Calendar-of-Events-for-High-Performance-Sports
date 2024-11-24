@@ -46,9 +46,9 @@ export const apiSlice = createApi({
         params.append('page', page.toString());
         params.append('pageSize', pageSize.toString());
 
-        if (sport) params.append('sport', sport);
+        if (sport) params.append('sport_type', sport);
         if (location) params.append('location', location);
-        if (participantsCount) params.append('participantsCount', participantsCount.toString());
+        if (participantsCount) params.append('max_participants_count', participantsCount.toString());
 
         return {
           url: `/events?${params.toString()}`,
