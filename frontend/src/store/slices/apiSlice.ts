@@ -3,6 +3,7 @@ import { TEventsResponse } from "../../definitions/types/TEventsResponse";
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { TAuthResponse } from "../../definitions/types/TAuthResponse";
 import { TNotificationSettings } from "../../definitions/types/TNotificationSettings";
+import {TFilterOptionsResponse} from "../../definitions/types/TFilterResponse";
 
 const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
 
@@ -26,9 +27,8 @@ const baseQuery = fetchBaseQuery({
 export const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery: baseQuery,
-  tagTypes: ['User', 'Events', 'NotificationSettings'],
+  tagTypes: ['User', 'Events', 'NotificationSettings', 'filters'],
   endpoints: (builder) => ({
-    // Аутентификация
     login: builder.mutation<TAuthResponse, TAuthCredentials>({
       query: (credentials) => ({
         url: '/login/',
@@ -36,17 +36,14 @@ export const apiSlice = createApi({
         body: credentials,
       }),
     }),
-    // Получение событий
     getEvents: builder.query<TEventsResponse, void>({
       query: () => '/events/',
       providesTags: ['Events'],
     }),
-    // Получение настроек уведомлений
-    getNotificationSettings: builder.query<TNotificationSettings, void>({
-      query: () => '/settings/notifications/',
-      providesTags: ['NotificationSettings'],
+    getFilters: builder.query<TFilterOptionsResponse, void>({
+      query: () => '/events/filter-options/',
+      providesTags: ['filters'],
     }),
-    // Обновление настроек уведомлений
     updateNotificationSettings: builder.mutation<void, TNotificationSettings>({
       query: (settings) => ({
         url: '/settings/notifications/',
@@ -55,12 +52,17 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ['NotificationSettings'],
     }),
+    getNotificationSettings: builder.query<TNotificationSettings, void>({
+      query: () => '/settings/notifications/',
+      providesTags: ['NotificationSettings'],
+    }),
   }),
 });
 
 export const {
   useLoginMutation,
   useGetEventsQuery,
-  useGetNotificationSettingsQuery,
+  useGetFiltersQuery,
   useUpdateNotificationSettingsMutation,
+  useGetNotificationSettingsQuery,
 } = apiSlice;
