@@ -20,6 +20,14 @@ class UserExtended(AbstractUser):
         verbose_name='Получать напоминания о мероприятиях'
     )
 
+    # Список интересующих видов спорта
+    favorite_sports = models.ManyToManyField(
+        'events.Sport',
+        blank=True,
+        related_name='subscribed_users',
+        verbose_name='Любимые виды спорта'
+    )
+
     class Meta:
         verbose_name = "Пользователь"
         verbose_name_plural = "Пользователи"

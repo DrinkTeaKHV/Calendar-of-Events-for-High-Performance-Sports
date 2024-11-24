@@ -1,135 +1,102 @@
 from datetime import timedelta
 
-from django.conf import settings
-from django.core.mail import send_mail
-from django.utils import timezone
+from django.utils.timezone import now
 
-from apps.events.models import Event, FavoriteEvent
-from apps.notifications.models import Notification
-from apps.tgbot.bot.messages import sync_send_message
+from apps.notifications.tasks.utils import send_notification
+from apps.events.models import Event
+from apps.users.models import UserExtended
 from config.celery import app
 
 
 @app.task
-def send_event_update_notification(event_id):
+def notify_about_new_event(event_id):
+    """
+    Уведомляет пользователей о новом мероприятии, если его вид спорта
+    совпадает с их избранными видами спорта.
+    """
+
     try:
         event = Event.objects.get(id=event_id)
-        favorites = FavoriteEvent.objects.filter(event=event)
-        for favorite in favorites:
-            user = favorite.user
-            if user.email or user.telegram_id:
-                message = (f"Мероприятие обновлено: {event.name}"
-                           f"\nНовая дата начала: {event.start_date}\nНовое место проведения: {event.location}")
+        # Пользователи, у которых вид спорта мероприятия в избранном
+        users = UserExtended.objects.filter(
+            receive_new_event_notifications=True,
+            favorite_sports=event.sport
+        ).distinct()
 
-                # Отправка Email
-                email_sent = False
-                if user.email and user.receive_event_update_notifications:
-                    send_mail(
-                        subject='Обновление спортивного мероприятия',
-                        message=message,
-                        from_email=settings.DEFAULT_FROM_EMAIL,
-                        recipient_list=[user.email],
-                        fail_silently=False,
-                    )
-                    email_sent = True
+        message = (
+            f"Новое мероприятие добавлено: {event.name}\n"
+            f"Дата начала: {event.start_date}\n"
+            f"Место проведения: {event.location}\n"
+            f"Вид спорта: {event.sport.name}"
+        )
 
-                # Отправка Telegram
-                telegram_sent = False
-                if user.telegram_id and user.receive_event_update_notifications:
-                    telegram_sent = sync_send_message(user.telegram_id, message)
-
-                # Сохранение уведомления
-                Notification.objects.create(
-                    user=user,
-                    event=event,
-                    notification_type='EVENT_UPDATE',
-                    message=message,
-                    telegram_sent=telegram_sent,
-                    email_sent=email_sent
-                )
+        for user in users:
+            send_notification(
+                user=user,
+                event=event,
+                notification_type="NEW_EVENT",
+                message=message,
+                email_subject="Новое мероприятие"
+            )
     except Event.DoesNotExist:
-        pass  # Можно логировать ошибку
+        pass
 
 
 @app.task
-def send_event_reminders():
+def notify_about_favorite_event_changes(event_id):
     """
-    Задача, которая отправляет напоминания за неделю и за два дня до начала мероприятия.
+    Отправляет уведомления об изменении мероприятия пользователям, у которых
+    оно в избранном.
     """
-    today = timezone.now().date()
-    one_week_later = today + timedelta(days=7)
-    two_days_later = today + timedelta(days=2)
+    try:
+        event = Event.objects.get(id=event_id)
+        favorites = event.favoriteevent_set.all()
 
-    # Напоминания за неделю
-    events_upcoming_week = Event.objects.filter(start_date=one_week_later)
-    for event in events_upcoming_week:
-        favorites = FavoriteEvent.objects.filter(event=event)
+        message = (
+            f"Изменения в мероприятии: {event.name}\n"
+            f"Дата начала: {event.start_date}\n"
+            f"Место проведения: {event.location}\n"
+            f"Статус: {event.get_status_display()}"
+        )
+
         for favorite in favorites:
             user = favorite.user
-            if user.email or user.telegram_id:
-                message = (f"Напоминаем о мероприятии: {event.name}"
-                           f"\nДата начала: {event.start_date}\nМесто проведения: {event.location}")
+            send_notification(
+                user=user,
+                event=event,
+                notification_type="FAVORITE_EVENT_UPDATE",
+                message=message,
+            )
+    except Event.DoesNotExist:
+        pass
 
-                # Отправка Email
-                email_sent = False
-                if user.email and user.receive_event_reminders:
-                    send_mail(
-                        subject='Напоминание о спортивном мероприятии через неделю',
-                        message=message,
-                        from_email=settings.DEFAULT_FROM_EMAIL,
-                        recipient_list=[user.email],
-                        fail_silently=False,
-                    )
-                    email_sent = True
 
-                # Отправка Telegram
-                telegram_sent = False
-                if user.telegram_id and user.receive_event_reminders:
-                    telegram_sent = sync_send_message(user.telegram_id, message)
+@app.task
+def send_daily_event_reminders():
+    """
+    Отправляет напоминания о мероприятиях, которые начнутся через 1 день.
+    """
 
-                # Сохранение уведомления
-                Notification.objects.create(
-                    user=user,
-                    event=event,
-                    notification_type='REMINDER',
-                    message=message,
-                    telegram_sent=telegram_sent,
-                    email_sent=email_sent
-                )
+    today = now().date()
+    tomorrow = today + timedelta(days=1)
 
-    # Напоминания за два дня
-    events_upcoming_two_days = Event.objects.filter(start_date=two_days_later)
-    for event in events_upcoming_two_days:
-        favorites = FavoriteEvent.objects.filter(event=event)
+    # Мероприятия, начинающиеся завтра
+    events = Event.objects.filter(start_date=tomorrow)
+
+    for event in events:
+        favorites = event.favoriteevent_set.all()
+
+        message = (
+            f"Напоминаем о мероприятии: {event.name}\n"
+            f"Дата начала: {event.start_date}\n"
+            f"Место проведения: {event.location}"
+        )
+
         for favorite in favorites:
             user = favorite.user
-            if user.email or user.telegram_id:
-                message = (f"Напоминаем о мероприятии: {event.name}"
-                           f"\nДата начала: {event.start_date}\nМесто проведения: {event.location}")
-
-                # Отправка Email
-                email_sent = False
-                if user.email and user.receive_event_reminders:
-                    send_mail(
-                        subject='Напоминание о спортивном мероприятии через два дня',
-                        message=message,
-                        from_email=settings.DEFAULT_FROM_EMAIL,
-                        recipient_list=[user.email],
-                        fail_silently=False,
-                    )
-                    email_sent = True
-
-                # Отправка Telegram
-                telegram_sent = False
-                if user.telegram_id and user.receive_event_reminders:
-                    telegram_sent = sync_send_message(user.telegram_id, message)
-
-                # Сохранение уведомления
-                Notification.objects.create(
-                    user=user,
-                    event=event,
-                    notification_type='REMINDER',
-                    message=message,
-                    telegram_sent=telegram_sent,
-                    email_sent=email_sent
-                )
+            send_notification(
+                user=user,
+                event=event,
+                notification_type="REMINDER",
+                message=message,
+            )

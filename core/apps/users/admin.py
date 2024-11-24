@@ -20,3 +20,4 @@ class UserExtendedAdmin(UserAdmin):
             )
         }),
     )
+    filter_horizontal = ('favorite_sports',)  # Для выбора видов спорта в админке

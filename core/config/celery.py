@@ -13,8 +13,10 @@ app.autodiscover_tasks()
 
 
 app.conf.beat_schedule = {
-    'send-event-reminders-every-minute': {
-        'task': 'apps.events.tasks.send_event_reminders',
-        'schedule': crontab(),  # По умолчанию запускается каждую минуту
+    "send_event_reminders_every_5_minutes": {
+        "task": "apps.notifications.tasks.send_daily_event_reminders",
+        "schedule": crontab(minute="*/5"),  # Каждые 5 минут
     },
 }
+
+app.conf.timezone = "UTC"  # Установите вашу временную зону (например, "Europe/Moscow" для Москвы)
