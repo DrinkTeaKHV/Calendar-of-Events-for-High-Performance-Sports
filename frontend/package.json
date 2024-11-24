@@ -5,7 +5,7 @@
   "scripts": {
     "start": "cross-env REACT_APP_API_URL=http://localhost:8000/api react-scripts start",
     "local-docker": "cross-env REACT_APP_API_URL=http://localhost/api react-scripts build",
-    "prod": "cross-env REACT_APP_API_URL=http://95.163.229.215/api react-scripts build"
+    "prod": "cross-env REACT_APP_API_URL=http://localhost/api react-scripts build"
   },
   "dependencies": {
     "@emotion/react": "^11.13.5",
