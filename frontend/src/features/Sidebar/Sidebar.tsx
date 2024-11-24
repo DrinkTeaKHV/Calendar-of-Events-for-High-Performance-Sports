@@ -11,7 +11,7 @@ import {
   CircularProgress,
   SelectChangeEvent,
 } from '@mui/material';
-import {setSport, setLocation, setParticipantsCount} from '../../store/slices/filtersSlice';
+import {setSport, setLocation, setParticipantsCount, setCompetitionType, setGender} from '../../store/slices/filtersSlice'; // Import new actions
 import {useGetFiltersQuery} from '../../store/slices/apiSlice';
 import {useAppSelector} from '../../hooks/useAppSelector';
 import {useAppDispatch} from '../../hooks/useAppDispatch';
@@ -23,6 +23,8 @@ const Sidebar: React.FC = () => {
   const participantOptions = filtersData?.participants_counts || [];
   const sportsOptions = filtersData?.sports || [];
   const locationsOptions = filtersData?.locations || [];
+  const competitionTypesOptions = filtersData?.competition_types || [];
+  const gendersOptions = filtersData?.genders || [];
   const filters = useAppSelector((state: RootState) => state.filters);
 
   const handleSportChange = (event: SelectChangeEvent<string>) => {
@@ -39,6 +41,16 @@ const Sidebar: React.FC = () => {
     const value = event.target.value;
     const numericValue = value === '' ? null : Number(value);
     dispatch(setParticipantsCount(numericValue));
+  };
+
+  const handleCompetitionTypeChange = (event: SelectChangeEvent<string>) => { // New handler
+    const value = event.target.value;
+    dispatch(setCompetitionType(value === '' ? null : value));
+  };
+
+  const handleGenderChange = (event: SelectChangeEvent<string>) => { // New handler
+    const value = event.target.value;
+    dispatch(setGender(value === '' ? null : value));
   };
 
   if (isLoading) {
@@ -133,11 +145,11 @@ const Sidebar: React.FC = () => {
         </ListItem>
         <ListItem>
           <FormControl fullWidth>
-            <InputLabel id="participants-label">Макс. кол. участников</InputLabel>
+            <InputLabel id="participants-label">Макс. участников</InputLabel>
             <Select
               labelId="participants-label"
               value={filters.participantsCount !== null ? String(filters.participantsCount) : ''}
-              label="Макс. кол. участников"
+              label="Макс. участников"
               onChange={handleParticipantsChange}
               sx={{ fontSize: '14px' }}
               MenuProps={{
@@ -153,6 +165,61 @@ const Sidebar: React.FC = () => {
                   style={{ fontSize: '12px' }}
                 >
                   до {option.participants_count} человек
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </ListItem>
+        <ListItem>
+          <FormControl fullWidth>
+            <InputLabel id="competition-type-label">Тип соревнования</InputLabel>
+            <Select
+              labelId="competition-type-label"
+              value={filters.competitionType || ''}
+              label="Тип соревнования"
+              onChange={handleCompetitionTypeChange}
+              sx={{ fontSize: '14px' }}
+              MenuProps={{
+                PaperProps: {
+                  style: { maxHeight: 200, fontSize: '12px' },
+                },
+              }}
+            >
+              {competitionTypesOptions.map((type) => (
+                <MenuItem
+                  key={type}
+                  value={type}
+                  style={{ fontSize: '12px' }}
+                >
+                  {type}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </ListItem>
+        {/* New Filter: Пол */}
+        <ListItem>
+          <FormControl fullWidth>
+            <InputLabel id="gender-label">Пол</InputLabel>
+            <Select
+              labelId="gender-label"
+              value={filters.gender || ''}
+              label="Пол"
+              onChange={handleGenderChange}
+              sx={{ fontSize: '14px' }}
+              MenuProps={{
+                PaperProps: {
+                  style: { maxHeight: 200, fontSize: '12px' },
+                },
+              }}
+            >
+              {gendersOptions.map((gender) => (
+                <MenuItem
+                  key={gender}
+                  value={gender}
+                  style={{ fontSize: '12px' }}
+                >
+                  {gender}
                 </MenuItem>
               ))}
             </Select>
