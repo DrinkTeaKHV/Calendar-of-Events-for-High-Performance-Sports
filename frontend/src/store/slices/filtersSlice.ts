@@ -1,13 +1,27 @@
-import {createSlice, PayloadAction} from '@reduxjs/toolkit';
-import {TFiltersState} from "../../definitions/types/TFiltersState";
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-const initialState: TFiltersState = {
+interface FiltersState {
+  sport: string | null;
+  location: string | null;
+  participantsCount: number | null;
+  competitionType: string | null;
+  gender: string | null;
+  q: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  ordering: string | null;
+}
+
+const initialState: FiltersState = {
   sport: null,
   location: null,
   participantsCount: null,
   competitionType: null,
   gender: null,
   q: null,
+  start_date: null,
+  end_date: null,
+  ordering: null,
 };
 
 const filtersSlice = createSlice({
@@ -29,16 +43,17 @@ const filtersSlice = createSlice({
     setGender(state, action: PayloadAction<string | null>) {
       state.gender = action.payload;
     },
-    setQ(state, action: PayloadAction<string | null>) { // New action to set search query
+    setQ(state, action: PayloadAction<string | null>) {
       state.q = action.payload;
     },
-    resetFilters(state) {
-      state.sport = null;
-      state.location = null;
-      state.participantsCount = null;
-      state.competitionType = null;
-      state.gender = null;
-      state.q = null;
+    setStartDate(state, action: PayloadAction<string | null>) {
+      state.start_date = action.payload;
+    },
+    setEndDate(state, action: PayloadAction<string | null>) {
+      state.end_date = action.payload;
+    },
+    setOrdering(state, action: PayloadAction<string | null>) {
+      state.ordering = action.payload;
     },
     resetSport(state) {
       state.sport = null;
@@ -55,8 +70,17 @@ const filtersSlice = createSlice({
     resetGender(state) {
       state.gender = null;
     },
-    resetQ(state) { // New action to reset search query
+    resetQ(state) {
       state.q = null;
+    },
+    resetStartDate(state) {
+      state.start_date = null;
+    },
+    resetEndDate(state) {
+      state.end_date = null;
+    },
+    resetOrdering(state) {
+      state.ordering = null;
     },
     resetAllFilters(state) {
       state.sport = null;
@@ -64,7 +88,10 @@ const filtersSlice = createSlice({
       state.participantsCount = null;
       state.competitionType = null;
       state.gender = null;
-      state.q = null; // Reset search query
+      state.q = null;
+      state.start_date = null;
+      state.end_date = null;
+      state.ordering = null;
     },
   },
 });
@@ -76,13 +103,18 @@ export const {
   setCompetitionType,
   setGender,
   setQ,
-  resetFilters,
+  setStartDate,
+  setEndDate,
+  setOrdering,
   resetSport,
   resetLocation,
   resetParticipantsCount,
   resetCompetitionType,
   resetGender,
   resetQ,
+  resetStartDate,
+  resetEndDate,
+  resetOrdering,
   resetAllFilters,
 } = filtersSlice.actions;
 

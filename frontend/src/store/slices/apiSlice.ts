@@ -1,6 +1,6 @@
 import { TAuthCredentials } from "../../definitions/types/TAuthCredentials";
 import { TEventsResponse } from "../../definitions/types/TEventsResponse";
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import {BaseQueryFn, createApi, FetchArgs, fetchBaseQuery, FetchBaseQueryError} from '@reduxjs/toolkit/query/react';
 import { TAuthResponse } from "../../definitions/types/TAuthResponse";
 import {TEventsParams} from "../../definitions/types/TEventsParams";
 import { TNotificationSettings } from "../../definitions/types/TNotificationSettings";
@@ -26,9 +26,26 @@ const baseQuery = fetchBaseQuery({
   },
 });
 
+// Типизированный baseQueryWithReauth
+const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> = async (
+    args,
+    api,
+    extraOptions
+) => {
+  let result = await baseQuery(args, api, extraOptions);
+
+  if (result.error && result.error.status === 401) {
+    // Перенаправление на страницу логина
+    window.location.href = '/login';
+  }
+
+  return result;
+};
+
+
 export const apiSlice = createApi({
   reducerPath: 'api',
-  baseQuery: baseQuery,
+  baseQuery: baseQueryWithReauth,
   tagTypes: ['User', 'Events', 'Filters', 'NotificationSettings', 'Sports'],
   endpoints: (builder) => ({
     // Аутентификация
@@ -48,7 +65,7 @@ export const apiSlice = createApi({
       invalidatesTags: ['Events'], // Для обновления списка, если нужно
     }),
     getEvents: builder.query<TEventsResponse, TEventsParams>({
-      query: ({ page, pageSize, sport, location, participantsCount, competitionType, gender, q }) => { // Include 'q'
+      query: ({ page, pageSize, sport, location, participantsCount, competitionType, gender, start_date, end_date, ordering,  q }) => { // Include 'q'
         const params = new URLSearchParams();
 
         params.append('page', page.toString());
@@ -59,7 +76,10 @@ export const apiSlice = createApi({
         if (participantsCount) params.append('max_participants_count', participantsCount.toString());
         if (competitionType) params.append('competition_type', competitionType);
         if (gender) params.append('gender', gender);
+        if (start_date)  params.append('start_date', start_date);
+        if (end_date)  params.append('end_date', end_date);
         if (q) params.append('q', q);
+        if (ordering) params.append('ordering', ordering);
 
         return {
           url: `/events?${params.toString()}`,

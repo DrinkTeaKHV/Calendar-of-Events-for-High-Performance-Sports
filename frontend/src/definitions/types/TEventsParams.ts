@@ -7,4 +7,7 @@ export type TEventsParams = {
   competitionType?: string | null;
   gender?: string | null;
   q?: string | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  ordering?: string | null;
 }

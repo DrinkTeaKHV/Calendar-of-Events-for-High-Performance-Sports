@@ -124,13 +124,13 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
     def list(self, request, *args, **kwargs):
         query_params = request.query_params
         must_queries = self._build_query(query_params)
+        ordering = query_params.get('ordering', None)
 
         if must_queries:
             # Формируем запрос ElasticSearch
             search = EventDocument.search().query('bool', must=must_queries)
 
             # Добавляем сортировку
-            ordering = query_params.get('ordering', None)
             sort = self._build_sort(ordering)
             if sort:
                 search = search.sort(*sort)
@@ -142,6 +142,10 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
             ids = [int(hit.meta.id) for hit in response]
             queryset = self.queryset.filter(id__in=ids)
 
+            # Применяем сортировку в Django ORM
+            if ordering:
+                queryset = queryset.order_by(*ordering.split(','))
+
             # Применяем стандартную пагинацию
             page = self.paginate_queryset(queryset)
             if page is not None:
@@ -151,8 +155,18 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
             serializer = self.get_serializer(queryset, many=True)
             return Response(serializer.data)
 
-        # Если фильтров нет, возвращаем стандартный список
-        return super().list(request, *args, **kwargs)
+        # Если фильтров нет, возвращаем стандартный список с сортировкой
+        queryset = self.filter_queryset(self.get_queryset())
+        if ordering:
+            queryset = queryset.order_by(*ordering.split(','))
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     @method_decorator(cache_page(settings.CACHE_TTL, key_prefix='filter_list'))
     @swagger_auto_schema(

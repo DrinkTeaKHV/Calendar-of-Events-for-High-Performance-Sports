@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Chip,
   Table,
@@ -11,6 +11,9 @@ import {
   Typography,
   TableContainer,
   CircularProgress,
+  TextField,
+  MenuItem,
+  Button,
 } from '@mui/material';
 import {
   resetSport,
@@ -18,17 +21,22 @@ import {
   resetParticipantsCount,
   resetCompetitionType,
   resetGender,
-  resetQ
+  resetQ,
+  setStartDate,
+  setEndDate,
+  setOrdering,
+  resetAllFilters,
 } from '../../store/slices/filtersSlice';
-import {useGetEventsQuery, useAddToFavoritesMutation} from '../../store/slices/apiSlice';
-import {useAppSelector} from '../../hooks/useAppSelector';
-import {useAppDispatch} from '../../hooks/useAppDispatch';
-import {formatDate} from '../../utils/formatDate';
-import {RootState} from '../../store/store';
+import { useGetEventsQuery, useAddToFavoritesMutation } from '../../store/slices/apiSlice';
+import { useAppSelector } from '../../hooks/useAppSelector';
+import { useAppDispatch } from '../../hooks/useAppDispatch';
+import { formatDate } from '../../utils/formatDate';
+import { RootState } from '../../store/store';
 
 const Events: React.FC = () => {
   const headers = [
     '№ СМ',
+     'Название',
     'Вид спорта',
     'Место проведения',
     'Макс. участников',
@@ -37,12 +45,14 @@ const Events: React.FC = () => {
     'Начало',
     'Окончание',
   ];
+
   const [page, setPage] = useState(1);
   const pageSize = 10;
   const dispatch = useAppDispatch();
   const filters = useAppSelector((state: RootState) => state.filters);
   const [selectedEvents, setSelectedEvents] = useState<number[]>([]);
   const [addToFavorites] = useAddToFavoritesMutation();
+
   const { data, error, isError, isLoading } = useGetEventsQuery({
     page,
     pageSize,
@@ -52,32 +62,43 @@ const Events: React.FC = () => {
     competitionType: filters.competitionType,
     gender: filters.gender,
     q: filters.q,
+    start_date: filters.start_date,
+    end_date: filters.end_date,
+    ordering: filters.ordering,
   });
 
   const totalPages = data ? Math.ceil(data.count / pageSize) : 1;
 
   useEffect(() => {
     setPage(1);
-  }, [filters.sport, filters.location, filters.participantsCount, filters.competitionType, filters.gender, filters.q]);
+  }, [
+    filters.sport,
+    filters.location,
+    filters.participantsCount,
+    filters.competitionType,
+    filters.gender,
+    filters.q,
+    filters.start_date,
+    filters.end_date,
+    filters.ordering,
+  ]);
 
-  if (isLoading) {
-    return (
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
-          <CircularProgress />
-        </div>
-    );
-  }
+  const orderingOptions = [
+    { value: 'start_date', label: 'Дата начала (по возрастанию)' },
+    { value: '-start_date', label: 'Дата начала (по убыванию)' },
+    { value: 'end_date', label: 'Дата окончания (по возрастанию)' },
+    { value: '-end_date', label: 'Дата окончания (по убыванию)' },
+  ];
 
   const handleCheckboxChange = async (eventId: number, isChecked: boolean) => {
     if (isChecked) {
       try {
-        await addToFavorites({event: eventId}).unwrap();
+        await addToFavorites({ event: eventId }).unwrap();
         setSelectedEvents((prev) => [...prev, eventId]);
       } catch (error) {
         console.error('Ошибка при добавлении в избранное:', error);
       }
     } else {
-      // Удаление из списка выбранных (опционально: можно реализовать удаление из избранного)
       setSelectedEvents((prev) => prev.filter((id) => id !== eventId));
     }
   };
@@ -111,6 +132,15 @@ const Events: React.FC = () => {
       case 'q':
         dispatch(resetQ());
         break;
+      case 'start_date':
+        dispatch(setStartDate(null));
+        break;
+      case 'end_date':
+        dispatch(setEndDate(null));
+        break;
+      case 'ordering':
+        dispatch(setOrdering(null));
+        break
       default:
         break;
     }
@@ -128,28 +158,11 @@ const Events: React.FC = () => {
     { type: 'competitionType', label: filters.competitionType },
     { type: 'gender', label: filters.gender },
     { type: 'q', label: filters.q },
+    { type: 'start_date', label: filters.start_date ? `с ${filters.start_date}` : '' },
+    { type: 'end_date', label: filters.end_date ? `до ${filters.end_date}` : '' },
+    { type: 'ordering', label: filters.ordering ? `Сортировка: ${filters.ordering.replace('_', ' ')}` : '' },
   ].filter((filter) => filter.label);
 
-
-  if (!data || data.results.length === 0 || isError) {
-    return <div
-        style={{
-          display: 'flex',
-          gap: '8px',
-          marginBottom: '16px',
-          flexWrap: 'wrap',
-        }}
-    >
-      {activeFilters.map((filter) => (
-          <Chip
-              key={filter.type}
-              label={filter.label}
-              onDelete={() => handleDelete(filter.type)}
-          />
-      ))}
-      <Typography variant="h6" align="center">Нет доступных данных.</Typography>;
-    </div>
-  }
 
   return (
       <div style={{ padding: '16px' }}>
@@ -169,55 +182,84 @@ const Events: React.FC = () => {
               />
           ))}
         </div>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell padding="checkbox">
-                  <Checkbox />
-                </TableCell>
-                {headers.map((header, index) => (
-                    <TableCell key={index}>{header}</TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {data.results.map((event) => (
-                  <TableRow key={event.id}>
+
+        <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
+          <TextField
+              type="date"
+              label="Дата начала"
+              InputLabelProps={{ shrink: true }}
+              value={filters.start_date || ''}
+              onChange={(e) => dispatch(setStartDate(e.target.value || null))}
+          />
+          <TextField
+              type="date"
+              label="Дата окончания"
+              InputLabelProps={{ shrink: true }}
+              value={filters.end_date || ''}
+              onChange={(e) => dispatch(setEndDate(e.target.value || null))}
+          />
+          <TextField
+              select
+              label="Сортировка"
+              value={filters.ordering || ''}
+              onChange={(e) => dispatch(setOrdering(e.target.value || null))}
+              sx={{ minWidth: '200px' }}
+          >
+            {orderingOptions.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+            ))}
+          </TextField>
+        </div>
+
+        {isLoading ? (
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+              <CircularProgress />
+            </div>
+        ) : data && data.results.length > 0 ? (
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
                     <TableCell padding="checkbox">
-                      <Checkbox checked={event.is_favorite}
-                                onChange={(e) => handleCheckboxChange(event.id, e.target.checked)}
-                      />
+                      <Checkbox />
                     </TableCell>
-                    <TableCell sx={{ fontSize: '0.65rem' }}>
-                      {event.sm_number}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: '0.65rem' }}>
-                      {event.sport}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: '0.65rem' }}>
-                      {event.location}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: '0.65rem' }}>
-                      {event.participants_count}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: '0.65rem' }}>
-                      {event.gender}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: '0.65rem' }}>
-                      {event.competition_type}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: '0.65rem' }}>
-                      {formatDate(event.start_date)}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: '0.65rem' }}>
-                      {formatDate(event.end_date)}
-                    </TableCell>
+                    {headers.map((header, index) => (
+                        <TableCell key={index}>{header}</TableCell>
+                    ))}
                   </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                </TableHead>
+                <TableBody>
+                  {data.results.map((event) => (
+                      <TableRow key={event.id}>
+                        <TableCell padding="checkbox">
+                          <Checkbox
+                              checked={event.is_favorite}
+                              onChange={(e) =>
+                                  handleCheckboxChange(event.id, e.target.checked)
+                              }
+                          />
+                        </TableCell>
+                        <TableCell>{event.sm_number}</TableCell>
+                        <TableCell>{event.name}</TableCell>
+                        <TableCell>{event.sport}</TableCell>
+                        <TableCell>{event.location}</TableCell>
+                        <TableCell>{event.participants_count}</TableCell>
+                        <TableCell>{event.gender}</TableCell>
+                        <TableCell>{event.competition_type}</TableCell>
+                        <TableCell>{formatDate(event.start_date)}</TableCell>
+                        <TableCell>{formatDate(event.end_date)}</TableCell>
+                      </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+        ) : (
+            <Typography variant="h6" align="center">
+              Нет доступных данных.
+            </Typography>
+        )}
         {totalPages > 1 && (
             <Pagination
                 count={totalPages}
