@@ -19,7 +19,7 @@ import {
   resetCompetitionType,
   resetGender,
   resetQ
-} from '../../store/slices/filtersSlice'; // Import new reset actions
+} from '../../store/slices/filtersSlice';
 import {useGetEventsQuery} from '../../store/slices/apiSlice';
 import {useAppSelector} from '../../hooks/useAppSelector';
 import {useAppDispatch} from '../../hooks/useAppDispatch';
