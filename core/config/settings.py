@@ -167,7 +167,7 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
-    'AUTH_COOKIE_SECURE': True,  # Использовать только HTTPS
+    'AUTH_COOKIE_SECURE': False,  # Использовать только HTTPS
     'AUTH_COOKIE_HTTP_ONLY': True,  # Запретить доступ к кукам через JS
     'AUTH_COOKIE_SAMESITE': 'Lax',  # Защита от CSRF
 }
