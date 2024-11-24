@@ -4,9 +4,9 @@ from django.utils.functional import cached_property
 from apps.users.models import UserExtended
 
 GENDER_CHOICES = [
-    ('male', 'Мужской'),
-    ('female', 'Женский'),
-    ('other', 'Другой'),
+    ('Мужской', 'Мужской'),
+    ('Женский', 'Женский'),
+    ('Смешанный', 'Другой'),
 ]
 
 
